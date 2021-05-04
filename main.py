@@ -199,7 +199,6 @@ class MainWindow(QMainWindow, main_ui):
             elif t == 'Off':
                 self.status_label.setText('-')
                 self.project.project_off()
-            print(self.project.status)
 
         @pyqtSlot()
         def run_backtest(self):
@@ -223,12 +222,18 @@ class MainWindow(QMainWindow, main_ui):
 
         # QListWidget에 Item 추가하는 법
         item = QListWidgetItem(self.algorithm_listWidget)
-        widget = MainWindow.AlgInMain(ObserveSoaringCoinAlg)
+        widget = MainWindow.AlgInMain(BreakVolatilityAlg)
         item.setSizeHint(QSize(0, 60))
         self.algorithm_listWidget.setItemWidget(item, widget)
         self.algorithm_listWidget.addItem(item)
+        MainWindow.algs[widget.title] = BreakVolatilityAlg()
 
-        MainWindow.algs[widget.title] = ObserveSoaringCoinAlg()
+        item = QListWidgetItem(self.algorithm_listWidget)
+        widget = MainWindow.AlgInMain(CatchRapidStarAlg)
+        item.setSizeHint(QSize(0, 60))
+        self.algorithm_listWidget.setItemWidget(item, widget)
+        self.algorithm_listWidget.addItem(item)
+        MainWindow.algs[widget.title] = CatchRapidStarAlg()
 
     @pyqtSlot()
     def add_project(self):
@@ -262,12 +267,6 @@ class MainWindow(QMainWindow, main_ui):
 
 if __name__ == "__main__":
     key = Account()  # 암호 키값 초기화
-    project = Project('test', 'test', {'oad': ObserveSoaringCoinAlg()})
-
-
-#    project.project_release()
-#    time.sleep(5)
-#    project.project_off()
 
     app = QApplication(sys.argv)
     myWindow = MainWindow()

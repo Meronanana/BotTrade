@@ -1,5 +1,5 @@
 import pyupbit as pu
-import pandas
+from pandas import DataFrame
 from PyQt5.QtCore import *
 from bttestaccount import *
 from datetime import datetime
@@ -61,6 +61,7 @@ class Order:
 class Project:
     # Order(현재시각, 프로젝트 객체, ticker, status, order(upbit or test))
     order_log = []
+    runner_amount = 0
 
     def __init__(self, name: str, title: str, algs: list):  # 인자로 알고리즘 객체의 리스트를 받음
         self.name = name
@@ -78,28 +79,40 @@ class Project:
 
     # 프로젝트가 실제 매매에 사용 중, 현재 테스트중이므로 비활성화
     def project_release(self):
-        self.project_off()
+        if self.status != 'Release':
+            self.buy_thread.terminate()
+            self.sell_thread.terminate()
 
-        self.status = 'Release'
-        # self.buy_thread.start()
-        # self.sell_thread.start()
-        # print('started?')
+            self.status = 'Release'
+            # self.buy_thread.start()
+            # self.sell_thread.start()
+            # print('started?')
+
+            Project.runner_amount += 1
 
     # 프로젝트가 실제 데이터를 활용한 테스트 중
     def project_testing(self):
-        self.project_off()
+        if self.status != 'Testing':
+            self.buy_thread.terminate()
+            self.sell_thread.terminate()
 
-        self.status = 'Testing'
-        self.buy_thread.start()
-        self.sell_thread.start()
+            self.status = 'Testing'
+            self.buy_thread.start()
+            self.sell_thread.start()
+
+            Project.runner_amount += 1
+            print(self.status)
 
     # 프로젝트가 현재 비활성화
     def project_off(self):
-        self.status = 'Off'
-        self.buy_thread.terminate()
-        self.sell_thread.terminate()
-        self.test_account.get_test_account()
-        # print('ended?')
+        if self.status != 'Off':
+            self.status = 'Off'
+            self.buy_thread.terminate()
+            self.sell_thread.terminate()
+            self.test_account.get_test_account()
+
+            Project.runner_amount -= 1
+            print(self.status)
 
 
 # 티커 관련 알고리즘 수정 필요, 매수량 및 매수가 관련 알고리즘 수정 필요.
@@ -112,16 +125,20 @@ class BuyThread(QThread):
     def run(self):
         while True:
             for ticker in self.project.tickers:
-                print(ticker)
+                print(Project.runner_amount)
 
-                # 요청 초과시 그냥 스킵
-                try:
-                    data = pu.get_ohlcv(ticker) # data의 규격은 일단 ohclv로 함.
-                except:
-                    continue
-
+                data: DataFrame
                 signal = True
                 for al in self.project.algorithms:
+                    try:
+                        data = pu.get_ohlcv(ticker=ticker, interval=al.datatype, count=30)  # data의 규격은 일단 ohclv로 함, 30개만 가져옴.
+                    except:
+                        print("요청 초과!")
+                        data = None
+                        signal = False
+                    if data is None:
+                        break
+
                     signal = signal and bool(al.buy_algorithm(data))
 
                 if signal:
@@ -131,7 +148,7 @@ class BuyThread(QThread):
                     elif self.project.status == 'Testing':
                         self.order_testing(ticker, data)
                     # print('here')
-                self.msleep(300)
+                self.msleep(250 * Project.runner_amount)
 
     # 프로젝트가 Release 상태 시 실제 주문, 일단 1/10주문으로 설정
     def order_release(self, ticker, data):
@@ -144,8 +161,7 @@ class BuyThread(QThread):
         price = float(data['close'][-1])
         amount = order_balance / price
         order = Account.my_account.buy_limit_order(ticker, price, amount)
-        #for al in self.project.algorithms:
-        #    al.receive_buy_data(order)
+
         self.project.real_holdings.append(order)
         self.project.tickers.remove(ticker)
 
@@ -164,13 +180,12 @@ class BuyThread(QThread):
             'currency': ticker, 'balance': amount, 'avg_buy_price': price, 'created_at': datetime.now()
             , 'status': "Testing", 'side': 'bid'
         }
-        #for al in self.project.algorithms:
-        #    al.receive_buy_data(test_order)
         self.project.test_holdings.append(test_order)
         self.project.tickers.remove(ticker)
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), test_order))
         self.project.test_account.buy_order(test_order)
+        print(ticker)
 
 
 # 티커 관련 알고리즘 수정 필요, 매도량 및 매도가 관련 알고리즘 수정 필요.
@@ -185,16 +200,19 @@ class SellThread(QThread):
             # 일단 테스트 주문을 기준으로 만들었다. 나중에 실제와도 호환되게 수정할것. 174line
             for order in self.project.test_holdings:
                 ticker = order['currency']
-                print(ticker)
 
-                # 요청 초과시 그냥 스킵
-                try:
-                    data = pu.get_ohlcv(ticker)  # data의 규격은 일단 ohclv로 함.
-                except:
-                    continue
-
+                data: DataFrame
                 signal = True
                 for al in self.project.algorithms:
+                    try:
+                        data = pu.get_ohlcv(ticker=ticker, interval=al.datatype, count=30)  # data의 규격은 일단 ohclv로 함, 30개만 가져옴.
+                    except:
+                        print("요청 초과!")
+                        data = None
+                        signal = False
+                    if data is None:
+                        break
+
                     signal = signal and bool(al.sell_algorithm(data, order, self.project.status))
 
                 if signal:
@@ -204,7 +222,7 @@ class SellThread(QThread):
                         print('here?')
                         self.order_testing(order, data)
                     # print('there')
-                self.msleep(300)
+                self.msleep(1000 * Project.runner_amount)
 
     # 프로젝트가 Release 상태 시 실제 주문, 일단 풀주문으로 설정
     def order_release(self, order, data):
@@ -214,7 +232,7 @@ class SellThread(QThread):
         order = Account.my_account.sell_limit_order(ticker, price, amount)
 
         self.project.real_holdings.remove(order)
-        #  self.project.tickers.append(ticker)
+        self.project.tickers.append(ticker)
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), order))
 
@@ -229,7 +247,8 @@ class SellThread(QThread):
         }
 
         self.project.test_holdings.remove(order)
-        # self.project.tickers.append(ticker) // 한번 거래한 종목은 쳐다보지도 않는다
+        self.project.tickers.append(ticker)
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), test_order))
         self.project.test_account.sell_order(test_order)
+        print(ticker)

@@ -150,7 +150,7 @@ class BuyThread(QThread):
                     # print('here')
                 self.msleep(250 * Project.runner_amount)
 
-    # 프로젝트가 Release 상태 시 실제 주문, 일단 1/10주문으로 설정
+    # 프로젝트가 Release 상태 시 실제 주문
     def order_release(self, ticker, data):
         print('orororo')
         order_balance = self.project.balance / 1.0005  # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
@@ -167,9 +167,14 @@ class BuyThread(QThread):
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), order))
 
-    # 1/3 주문으로 설정
+    # 전체의 1/5 주문으로 설정
     def order_testing(self, ticker, data):
-        order_balance = self.project.test_account.balance / 3 / 1.0005 # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
+        # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
+        try:
+            order_balance = self.project.test_account.balance / (5-len(self.project.test_account.wallet.keys())) / 1.0005
+        except:
+            order_balance = 0
+
         if order_balance < 5000:
             print("balance not enough!")
             return

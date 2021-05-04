@@ -68,6 +68,7 @@ class TradeLog(QDialog):
         ui = 'trade_log.ui'
         uic.loadUi(ui, self)
         self.project_comboBox.addItems(MainWindow.pjs.keys())
+        self.sort_log()
 
         self.apply_pushButton.clicked.connect(self.sort_log)
 
@@ -101,6 +102,8 @@ class ProjectDetail(QDialog):
 
         self.title_lineEdit.setText(self.project.title)
         self.initialize_balance()
+
+        self.reset_pushButton.clicked.connect(self.initialize_balance)
 
         self.show()
 

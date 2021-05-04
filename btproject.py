@@ -66,10 +66,13 @@ class Project:
         self.name = name
         self.title = title
         self.algorithms = algs  # 알고리즘 객체로 이루어진 리스트
-        self.buy_thread = BuyThread(self, pu.get_tickers(fiat="KRW"))  # 티커는 krw시장 전 종목
-        self.sell_thread = SellThread(self, pu.get_tickers(fiat="KRW"))
+        self.tickers = pu.get_tickers(fiat="KRW")  # 티커는 krw시장 전 종목
+        self.buy_thread = BuyThread(self)
+        self.sell_thread = SellThread(self)
         self.status = 'Off'
         self.balance = 10000  # 프로젝트에서 사용 가능한 현금량
+        self.real_holdings = []
+        self.test_holdings = []
 
         self.test_account = TestAccount()
 
@@ -101,15 +104,14 @@ class Project:
 
 # 티커 관련 알고리즘 수정 필요, 매수량 및 매수가 관련 알고리즘 수정 필요.
 class BuyThread(QThread):
-    def __init__(self, pj: Project, tickers: list):
+    def __init__(self, pj: Project):
         super().__init__()
         self.project = pj
-        self.tickers = tickers
         # print(len(list(self.project.algorithms.values())))
 
     def run(self):
         while True:
-            for ticker in self.tickers:
+            for ticker in self.project.tickers:
                 print(ticker)
                 data = pu.get_ohlcv(ticker)  # data의 규격은 일단 ohclv로 함.
                 signal = True
@@ -134,63 +136,84 @@ class BuyThread(QThread):
         price = pu.get_current_price(ticker)
         amount = max_order_balance / price
         order = Account.my_account.buy_limit_order(ticker, price, amount)
-        for al in self.project.algorithms:
-            al.receive_buy_data(order)
+        #for al in self.project.algorithms:
+        #    al.receive_buy_data(order)
+        self.project.real_holdings.append(order)
+        self.project.tickers.remove(ticker)
+
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), order))
 
     def order_testing(self, ticker):
         max_order_balance = self.project.test_account.balance / 1.0005 # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
         price = pu.get_current_price(ticker)
         amount = max_order_balance / price
-        test_order = {'currency': ticker, 'balance': amount, 'avg_buy_price': price, 'created_at': datetime.now(), 'status': "Testing", 'side': 'bid'}
-        for al in self.project.algorithms:
-            al.receive_buy_data(test_order)
+        test_order = {
+            'currency': ticker, 'balance': amount, 'avg_buy_price': price, 'created_at': datetime.now()
+            , 'status': "Testing", 'side': 'bid'
+        }
+        #for al in self.project.algorithms:
+        #    al.receive_buy_data(test_order)
+        self.project.test_holdings.append(test_order)
+        self.project.tickers.remove(ticker)
+
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), test_order))
         self.project.test_account.buy_order(test_order)
 
 
 # 티커 관련 알고리즘 수정 필요, 매도량 및 매도가 관련 알고리즘 수정 필요.
 class SellThread(QThread):
-    def __init__(self, pj: Project, tickers: list):
+    def __init__(self, pj: Project):
         super().__init__()
         self.project = pj
-        self.tickers = tickers
 
+    # 주문단위로 판단하게 수정.
     def run(self):
         while True:
-            for ticker in self.tickers:
+            print('sell running')
+            # 일단 테스트 주문을 기준으로 만들었다. 나중에 실제와도 호환되게 수정할것. 174line
+            for order in self.project.test_holdings:
+                ticker = order['currency']
                 print(ticker)
                 data = pu.get_ohlcv(ticker)
                 signal = True
                 for al in self.project.algorithms:
-                    signal = signal and bool(al.sell_algorithm(data, self.project.status))
+                    signal = signal and bool(al.sell_algorithm(data, order, self.project.status))
 
                 if signal:
                     if self.project.status == 'Release':
-                        self.order_release(ticker)
+                        self.order_release(order)
                     elif self.project.status == 'Testing':
                         print('here?')
-                        self.order_testing(ticker)
+                        self.order_testing(order)
                     # print('there')
                 self.msleep(500)
 
             self.msleep(500)
 
     # 프로젝트가 Release 상태 시 실제 주문, 일단 풀주문으로 설정
-    def order_release(self, ticker):
+    def order_release(self, order):
+        ticker = order['currency']
         price = pu.get_current_price(ticker)
         amount = Account.my_account.get_balance(ticker)
         order = Account.my_account.sell_limit_order(ticker, price, amount)
-        for al in self.project.algorithms:
-            al.receive_sell_data(order)
+
+        self.project.real_holdings.remove(order)
+        self.project.tickers.append(ticker)
+
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), order))
 
-    # 정상적인 값 계산하는건 완료. 이제 매도 주문 이후 매도 되었음을 알리고 이 메서드를 부르지 않아야 한다
-    def order_testing(self, ticker):
+    # order 기반 주문
+    def order_testing(self, order):
+        ticker = order['currency']
         price = float(pu.get_current_price(ticker))
         amount = float(self.project.test_account.wallet[ticker]['balance'])
-        test_order = {'currency': ticker, 'balance': amount, 'avg_sell_price': price, 'created_at': datetime.now(), 'status': 'Testing', 'side': 'ask'}
-        for al in self.project.algorithms:
-            al.receive_sell_data(test_order)
+        test_order = {
+            'currency': ticker, 'balance': amount, 'avg_sell_price': price, 'created_at': datetime.now()
+            , 'status': 'Testing', 'side': 'ask'
+        }
+
+        self.project.test_holdings.remove(order)
+        self.project.tickers.append(ticker)
+
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), test_order))
         self.project.test_account.sell_order(test_order)

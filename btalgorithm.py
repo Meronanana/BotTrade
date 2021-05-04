@@ -11,8 +11,7 @@ class Algorithm:
     description: str
 
     def __init__(self):
-        self.buy_order = None
-        self.sell_order = None
+        pass
 
     # buy, sell은 하위 알고리즘 클래스들에서 재정의 할 것. 만약 정의 되어있지 않다면 True 반환해서 코드 진행에 피해 안가게 함.
     def buy_algorithm(self, data):
@@ -20,14 +19,6 @@ class Algorithm:
 
     def sell_algorithm(self, data):
         return True
-
-    # 하나의 매수 주문만 저장 가능
-    def receive_buy_data(self, order: tuple):
-        self.buy_order = order
-
-    # 하나의 매도 주문만 저장 가능
-    def receive_sell_data(self, order: tuple):
-        self.sell_order = order
 
 
 # 급등주 포착으로 매매
@@ -40,9 +31,6 @@ class ObserveSoaringCoinAlg(Algorithm):
 
     # 변동성 돌파 전략, k = 1
     def buy_algorithm(self, data):
-        if self.buy_order is not None:
-            print('already bought')
-            return False
         df = data
         yd = df.iloc[-2]  # yesterday data
 
@@ -58,34 +46,25 @@ class ObserveSoaringCoinAlg(Algorithm):
             return False
 
     # 매수 20분 후 매도
-    def sell_algorithm(self, data, status):
+    def sell_algorithm(self, data, order, status):
         gettime: str
         buy_order_time: datetime
-        if self.sell_order is not None:
-            print('already sold')
-            self.buy_order = None
-            self.sell_order = None
-            return False
 
-        if self.buy_order is not None:
-            if status == 'Release':
-                print('pass release')
-                gettime = str(self.buy_order['created_at']).split('T')
-                buy_order_time = datetime(int(gettime[0][:4]), int(gettime[0][5:7]), int(gettime[0][-2:]),
+        if status == 'Release':
+            print('pass release')
+            gettime = str(order['created_at']).split('T')
+            buy_order_time = datetime(int(gettime[0][:4]), int(gettime[0][5:7]), int(gettime[0][-2:]),
                                           int(gettime[1][:2]), int(gettime[1][3:5]), int(gettime[1][6:8]))
-            elif status == 'Testing':
-                print('pass test')
-                gettime = self.buy_order['created_at']
-                buy_order_time = gettime
-        else:
-            print('no order')
-            return False
+        elif status == 'Testing':
+            print('pass test')
+            gettime = order['created_at']
+            buy_order_time = gettime
 
-        now = datetime.now()
-        if (now - buy_order_time + timedelta(seconds=1)).seconds > 60:
+        if (datetime.now() - buy_order_time + timedelta(seconds=1)).seconds > 60:
             print('im sell')
             return True
         else:
             print('not sell')
             return False
+
 

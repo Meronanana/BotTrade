@@ -1,4 +1,3 @@
-import pyupbit as pu
 from datetime import datetime
 from datetime import timedelta
 

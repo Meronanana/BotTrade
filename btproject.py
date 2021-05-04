@@ -113,7 +113,13 @@ class BuyThread(QThread):
         while True:
             for ticker in self.project.tickers:
                 print(ticker)
-                data = pu.get_ohlcv(ticker) # data의 규격은 일단 ohclv로 함.
+
+                # 요청 초과시 그냥 스킵
+                try:
+                    data = pu.get_ohlcv(ticker) # data의 규격은 일단 ohclv로 함.
+                except:
+                    continue
+
                 signal = True
                 for al in self.project.algorithms:
                     signal = signal and bool(al.buy_algorithm(data))
@@ -145,9 +151,9 @@ class BuyThread(QThread):
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), order))
 
-    # 1/10 주문으로 설정
+    # 1/3 주문으로 설정
     def order_testing(self, ticker, data):
-        order_balance = self.project.test_account.balance / 10 / 1.0005 # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
+        order_balance = self.project.test_account.balance / 3 / 1.0005 # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
         if order_balance < 5000:
             print("balance not enough!")
             return
@@ -180,7 +186,13 @@ class SellThread(QThread):
             for order in self.project.test_holdings:
                 ticker = order['currency']
                 print(ticker)
-                data = pu.get_ohlcv(ticker)
+
+                # 요청 초과시 그냥 스킵
+                try:
+                    data = pu.get_ohlcv(ticker)  # data의 규격은 일단 ohclv로 함.
+                except:
+                    continue
+
                 signal = True
                 for al in self.project.algorithms:
                     signal = signal and bool(al.sell_algorithm(data, order, self.project.status))

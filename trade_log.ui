@@ -17,7 +17,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>거래 기록(Log)</string>
   </property>
   <widget class="QComboBox" name="project_comboBox">
    <property name="geometry">

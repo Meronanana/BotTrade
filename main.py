@@ -83,7 +83,7 @@ class TradeLog(QDialog):
             print(len(Project.order_log))
             # QTableWidget.setItem()
             self.log_tableWidget.setRowCount(len(Project.order_log))
-            for i, log in enumerate(Project.order_log):
+            for i, log in enumerate(reversed(Project.order_log)):
                 order_log = log.order_to_log()
                 item_time = QTableWidgetItem(order_log[0])
                 item_content = QTableWidgetItem(order_log[1])

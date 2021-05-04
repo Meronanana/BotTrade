@@ -21,6 +21,38 @@ class AddAlgInProject(QDialog):
 
             self.algorithm_title_label.setText(self.alg.title)
 
+    class SetProjectDetail(QDialog):
+        def __init__(self, parent, detail: tuple):
+            super(AddAlgInProject.SetProjectDetail, self).__init__(parent)
+            ui = 'set_project_detail.ui'
+            uic.loadUi(ui, self)
+
+            self.title = detail[0]
+            self.description = detail[1]
+
+            self.initialize_detail()
+
+            self.accept_pushButton.clicked.connect(self.accept)
+            self.reject_pushButton.clicked.connect(self.reject)
+
+            self.show()
+
+        def initialize_detail(self):
+            self.title_lineEdit.setText(self.title)
+            self.description_lineEdit.setText(self.description)
+
+        @pyqtSlot()
+        def accept(self):
+            self.accepted = True
+            self.title = str(self.title_lineEdit.text())
+            self.description = str(self.description_lineEdit.text())
+            super(AddAlgInProject.SetProjectDetail, self).accept()
+
+        @pyqtSlot()
+        def reject(self):
+            self.accepted = False
+            super(AddAlgInProject.SetProjectDetail, self).reject()
+
     def __init__(self, parent):
         super(AddAlgInProject, self).__init__(parent)
         ui = 'add_algorithms_in_project.ui'
@@ -28,13 +60,24 @@ class AddAlgInProject(QDialog):
         self.algorithm_comboBox.addItems(MainWindow.algs.keys())
 
         self.algorithms = []
+        self.title = 'Untitled'
+        self.description = 'No description'
 
+        self.detail_pushButton.clicked.connect(self.set_detail)
         self.add_alg_pushButton.clicked.connect(self.add_algorithm)
         self.del_alg_pushButton.clicked.connect(self.del_algorithm)
         self.accept_pushButton.clicked.connect(self.accept)
         self.reject_pushButton.clicked.connect(self.reject)
 
         self.show()
+
+    @pyqtSlot()
+    def set_detail(self):
+        window = AddAlgInProject.SetProjectDetail(self, (self.title, self.description))
+        window.exec_()
+        if window.accepted:
+            self.title = str(window.title)
+            self.description = str(window.description)
 
     @pyqtSlot()
     def add_algorithm(self):
@@ -106,7 +149,6 @@ class ProjectDetail(QDialog):
         self.reset_pushButton.clicked.connect(self.initialize_balance)
 
         self.show()
-
 
     def initialize_balance(self):
         test_acc = self.project.test_account
@@ -243,7 +285,7 @@ class MainWindow(QMainWindow, main_ui):
             # 프로젝트 생성해야 함
             item = QListWidgetItem(self.projects_listWidget)
             # items = MainWindow.ProjectLWI(item)
-            pj = Project('first_pj', 'First_Project', window.algorithms)
+            pj = Project('first_pj', str(window.title), window.algorithms)
             widget = MainWindow.ProjectInMain(pj)
             item.setSizeHint(QSize(0, 70))
 

@@ -64,7 +64,7 @@ class Project:
     runner_amount = 0
 
     def __init__(self, name: str, title: str, algs: list):  # 인자로 알고리즘 객체의 리스트를 받음
-        self.name = name
+        # self.name = name
         self.title = title
         self.algorithms = algs  # 알고리즘 객체로 이루어진 리스트
         self.tickers = pu.get_tickers(fiat="KRW")  # 티커는 krw시장 전 종목

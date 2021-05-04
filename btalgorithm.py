@@ -68,20 +68,20 @@ class BreakVolatilityAlg(Algorithm):
 # 두 번째 알고리즘!
 class CatchRapidStarAlg(Algorithm):
     title = '급등주 포착으로 빠르고 강력한 단타매매'
-    description = '변동성 돌파 전략 사용, 30분봉 기준 전 기간 (최고-최저)*1.5 만큼 오르면 매수 후 20분 후 매도'
+    description = '변동성 돌파 전략 사용, 30분봉 기준 전 기간 (최고-최저)*2 만큼 오르면 매수 후 20분 후 매도'
 
     def __init__(self):
         super().__init__()
         self.datatype = "minute30"
 
-    # 변동성 돌파 전략, k = 1.5
+    # 변동성 돌파 전략, k = 2
     def buy_algorithm(self, data):
         df = data
         bf30 = df.iloc[-2]  # 30분 전 데이터
 
         this_open = df.iloc[-1]['open']
         bf30_var = bf30['high'] - bf30['low']
-        target = this_open + bf30_var * 1.5
+        target = this_open + bf30_var * 2
 
         if df.iloc[-1]['close'] >= target:
             print('buy_alg_im buy')

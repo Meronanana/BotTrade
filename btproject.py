@@ -207,7 +207,7 @@ class SellThread(QThread):
         order = Account.my_account.sell_limit_order(ticker, price, amount)
 
         self.project.real_holdings.remove(order)
-        # self.project.tickers.append(ticker) // 한번 거래한 종목은 쳐다보지도 않는다
+        #  self.project.tickers.append(ticker)
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), order))
 
@@ -222,7 +222,7 @@ class SellThread(QThread):
         }
 
         self.project.test_holdings.remove(order)
-        self.project.tickers.append(ticker)
+        # self.project.tickers.append(ticker) // 한번 거래한 종목은 쳐다보지도 않는다
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), test_order))
         self.project.test_account.sell_order(test_order)

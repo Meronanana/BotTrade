@@ -119,7 +119,7 @@ class ProjectDetail(QDialog):
                 , str(buy_price)
                 , str(int(amount*buy_price))
                 , str(int(amount*now_price))
-                , '-' #str(round((amount*now_price-amount*buy_price)/(amount*buy_price)*100, 2))
+                , str(round((amount*now_price-amount*buy_price)/(amount*buy_price)*100, 2))
             ])
 
         print(data)

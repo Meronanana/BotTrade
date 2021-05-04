@@ -86,8 +86,8 @@ class TradeLog(QDialog):
                 order_log = log.order_to_log()
                 item_time = QTableWidgetItem(order_log[0])
                 item_content = QTableWidgetItem(order_log[1])
-                item_time.setSizeHint(QSize(100, 0))
-                item_content.setSizeHint(QSize(200, 0))
+                # item_time.setSizeHint(QSize(100, 0))
+                # item_content.setSizeHint(QSize(200, 0))
                 self.log_tableWidget.setItem(i, 0, item_time)
                 self.log_tableWidget.setItem(i, 1, item_content)
 

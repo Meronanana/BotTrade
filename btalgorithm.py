@@ -36,7 +36,7 @@ class ObserveSoaringCoinAlg(Algorithm):
 
         today_open = df.iloc[-1]['open']
         yd_var = yd['high'] - yd['low']
-        target = today_open + yd_var * 0.2
+        target = today_open + yd_var * 1
 
         if df.iloc[-1]['close'] >= target:
             print('im buy')
@@ -60,7 +60,7 @@ class ObserveSoaringCoinAlg(Algorithm):
             gettime = order['created_at']
             buy_order_time = gettime
 
-        if (datetime.now() - buy_order_time + timedelta(seconds=1)).seconds > 60:
+        if (datetime.now() - buy_order_time + timedelta(seconds=1)).seconds > 1200:
             print('im sell')
             return True
         else:

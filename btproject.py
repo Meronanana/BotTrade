@@ -113,7 +113,7 @@ class BuyThread(QThread):
         while True:
             for ticker in self.project.tickers:
                 print(ticker)
-                data = pu.get_ohlcv(ticker)  # data의 규격은 일단 ohclv로 함.
+                data = pu.get_ohlcv(ticker) # data의 규격은 일단 ohclv로 함.
                 signal = True
                 for al in self.project.algorithms:
                     signal = signal and bool(al.buy_algorithm(data))
@@ -129,12 +129,16 @@ class BuyThread(QThread):
 
             self.msleep(500)
 
-    # 프로젝트가 Release 상태 시 실제 주문, 일단 풀주문으로 설정
+    # 프로젝트가 Release 상태 시 실제 주문, 일단 1/10주문으로 설정
     def order_release(self, ticker):
         print('orororo')
-        max_order_balance = self.project.balance / 1.0005  # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
+        order_balance = self.project.balance / 1.0005  # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
+        if order_balance < 5000:
+            print("balance not enough!")
+            return
+
         price = pu.get_current_price(ticker)
-        amount = max_order_balance / price
+        amount = order_balance / price
         order = Account.my_account.buy_limit_order(ticker, price, amount)
         #for al in self.project.algorithms:
         #    al.receive_buy_data(order)
@@ -143,10 +147,15 @@ class BuyThread(QThread):
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), order))
 
+    # 1/10 주문으로 설정
     def order_testing(self, ticker):
-        max_order_balance = self.project.test_account.balance / 1.0005 # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
+        order_balance = self.project.test_account.balance / 10 / 1.0005 # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
+        if order_balance < 5000:
+            print("balance not enough!")
+            return
+
         price = pu.get_current_price(ticker)
-        amount = max_order_balance / price
+        amount = order_balance / price
         test_order = {
             'currency': ticker, 'balance': amount, 'avg_buy_price': price, 'created_at': datetime.now()
             , 'status': "Testing", 'side': 'bid'
@@ -198,7 +207,7 @@ class SellThread(QThread):
         order = Account.my_account.sell_limit_order(ticker, price, amount)
 
         self.project.real_holdings.remove(order)
-        self.project.tickers.append(ticker)
+        # self.project.tickers.append(ticker) // 한번 거래한 종목은 쳐다보지도 않는다
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), order))
 

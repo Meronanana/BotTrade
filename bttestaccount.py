@@ -1,4 +1,4 @@
-
+import pyupbit as pu
 
 class TestAccount:
     def __init__(self):
@@ -17,5 +17,17 @@ class TestAccount:
         self.balance = self.balance + (order['balance'] * order['avg_sell_price'] * 0.9995)
 
     def get_test_account(self):
-        print(self.balance)
-        print(self.wallet)
+        total_bought = 0
+        total_evaluate = 0
+        for order in self.wallet.values():
+            total_bought = total_bought + order['balance'] * order['avg_buy_price']
+            total_evaluate = total_evaluate + order['balance'] * pu.get_current_price(order['currency'])
+
+        total_balance = self.balance + total_evaluate
+        difference = total_evaluate - total_bought
+        try:
+            difference_rate = difference / total_bought * 100
+        except:
+            difference_rate = 0.00
+
+        return (int(total_balance), int(total_bought), int(total_evaluate), int(difference), round(difference_rate, 2))

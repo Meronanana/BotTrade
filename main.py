@@ -104,10 +104,19 @@ class ProjectDetail(QDialog):
 
         self.show()
 
-    # 보유코인-보유수량-매수평균가-매수금액-평가금액-평가손익
+
     def initialize_balance(self):
         test_acc = self.project.test_account
 
+        # 총보유자산-총매수금액-총평가금액-총평가손익-총평가수익률
+        acc_balance = test_acc.get_test_account()
+        self.total_balance_lineEdit.setText(str(acc_balance[0]))
+        self.total_bought_lineEdit.setText(str(acc_balance[1]))
+        self.total_evaluate_lineEdit.setText(str(acc_balance[2]))
+        self.diff_lineEdit.setText(str(acc_balance[3]))
+        self.diff_rate_lineEdit.setText(str(acc_balance[4])+'%')
+
+        # 보유코인-보유수량-매수평균가-매수금액-평가금액-평가손익
         data = [['KRW', '-', '-', '-', str(test_acc.balance), '-']]
         for currency in test_acc.wallet.keys():
             amount = test_acc.wallet[currency]['balance']
@@ -119,7 +128,7 @@ class ProjectDetail(QDialog):
                 , str(buy_price)
                 , str(int(amount*buy_price))
                 , str(int(amount*now_price))
-                , str(round((amount*now_price-amount*buy_price)/(amount*buy_price)*100, 2))
+                , str(round((amount*now_price-amount*buy_price)/(amount*buy_price)*100, 2))+'%'
             ])
 
         print(data)

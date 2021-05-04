@@ -32,7 +32,6 @@ class Order:
         self.ticker = ticker
         self.status = status
         self.order = order
-        print(tm, ticker, status, order)
 
     # 시간 - 로그내용([프로젝트], 티커, 매수/매도, 수량, 평균단가, 거래총액)
     def order_to_log(self):
@@ -42,7 +41,6 @@ class Order:
             # log_time = self.order_time.
             pass
         elif self.status == 'Testing':
-            print('ordertoLog')
             log_time = self.order_time.strftime('%y-%m-%d :: %H시 %M분 %S초')
             log_content = self.ordered_project.title + ' / ' + self.ticker + ' / '
             price: float
@@ -120,13 +118,10 @@ class BuyThread(QThread):
     def __init__(self, pj: Project):
         super().__init__()
         self.project = pj
-        # print(len(list(self.project.algorithms.values())))
 
     def run(self):
         while True:
             for ticker in self.project.tickers:
-                print(Project.runner_amount)
-
                 data: DataFrame
                 signal = True
                 for al in self.project.algorithms:
@@ -142,17 +137,14 @@ class BuyThread(QThread):
                     signal = signal and bool(al.buy_algorithm(data))
 
                 if signal:
-                    print('hi')
                     if self.project.status == 'Release':
                         self.order_release(ticker, data)
                     elif self.project.status == 'Testing':
                         self.order_testing(ticker, data)
-                    # print('here')
                 self.msleep(250 * Project.runner_amount)
 
     # 프로젝트가 Release 상태 시 실제 주문
     def order_release(self, ticker, data):
-        print('orororo')
         order_balance = self.project.balance / 1.0005  # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
         if order_balance < 5000:
             print("balance not enough!")
@@ -203,6 +195,9 @@ class SellThread(QThread):
     def run(self):
         while True:
             # 일단 테스트 주문을 기준으로 만들었다. 나중에 실제와도 호환되게 수정할것. 174line
+            if len(self.project.test_holdings) == 0:
+                self.sleep(30)
+                continue
             for order in self.project.test_holdings:
                 ticker = order['currency']
 
@@ -224,9 +219,7 @@ class SellThread(QThread):
                     if self.project.status == 'Release':
                         self.order_release(order, data)
                     elif self.project.status == 'Testing':
-                        print('here?')
                         self.order_testing(order, data)
-                    # print('there')
                 self.msleep(1000 * Project.runner_amount)
 
     # 프로젝트가 Release 상태 시 실제 주문, 일단 풀주문으로 설정

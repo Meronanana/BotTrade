@@ -121,9 +121,7 @@ class TradeLog(QDialog):
     def sort_log(self):
         # 로그 구분 범위에 따라 나누어서 해당 로그만 표시
         sort = self.project_comboBox.currentText()
-        print(sort)
         if sort == 'All':
-            print(len(Project.order_log))
             # QTableWidget.setItem()
             self.log_tableWidget.setRowCount(len(Project.order_log))
             for i, log in enumerate(reversed(Project.order_log)):
@@ -176,7 +174,6 @@ class ProjectDetail(QDialog):
                 , str(round((amount*now_price-amount*buy_price)/(amount*buy_price)*100, 2))+'%'
             ])
 
-        print(data)
         self.balance_tableWidget.setRowCount(len(data))
         for i, d in enumerate(data):
             for j, d2 in enumerate(d):

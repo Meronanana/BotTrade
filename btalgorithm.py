@@ -38,10 +38,8 @@ class BreakVolatilityAlg(Algorithm):
         target = today_open + yd_var * 1
 
         if df.iloc[-1]['close'] >= target:
-            print('buy_alg_im buy')
             return True
         else:
-            print('buy_alg_not buy')
             return False
 
     # 당일 종가 매도
@@ -58,10 +56,8 @@ class BreakVolatilityAlg(Algorithm):
         sell_time = datetime(buy_order_time.year, buy_order_time.month, buy_order_time.day+1
                              , hour=9, minute=0, second=0)
         if datetime.now() > sell_time:
-            print('im sell')
             return True
         else:
-            print('not sell')
             return False
 
 
@@ -84,10 +80,8 @@ class CatchRapidStarAlg(Algorithm):
         target = this_open + bf30_var * 2
 
         if df.iloc[-1]['close'] >= target:
-            print('buy_alg_im buy')
             return True
         else:
-            print('buy_alg_not buy')
             return False
 
     # 매수 20분 후 매도
@@ -95,18 +89,14 @@ class CatchRapidStarAlg(Algorithm):
         buy_order_time: datetime
 
         if status == 'Release':
-            print('pass release')
             get_time = str(order['created_at']).split('T')
             buy_order_time = datetime(int(get_time[0][:4]), int(get_time[0][5:7]), int(get_time[0][-2:]),
                                           int(get_time[1][:2]), int(get_time[1][3:5]), int(get_time[1][6:8]))
         elif status == 'Testing':
-            print('sell_alg_pass test')
             buy_order_time = order['created_at']
 
         if (datetime.now() - buy_order_time + timedelta(seconds=1)).seconds > 1200:
-            print('im sell')
             return True
         else:
-            print('not sell')
             return False
 

@@ -121,23 +121,21 @@ class BuyThread(QThread):
                 if signal:
                     print('hi')
                     if self.project.status == 'Release':
-                        self.order_release(ticker)
+                        self.order_release(ticker, data)
                     elif self.project.status == 'Testing':
-                        self.order_testing(ticker)
+                        self.order_testing(ticker, data)
                     # print('here')
-                self.msleep(500)
-
-            self.msleep(500)
+                self.msleep(300)
 
     # 프로젝트가 Release 상태 시 실제 주문, 일단 1/10주문으로 설정
-    def order_release(self, ticker):
+    def order_release(self, ticker, data):
         print('orororo')
         order_balance = self.project.balance / 1.0005  # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
         if order_balance < 5000:
             print("balance not enough!")
             return
 
-        price = pu.get_current_price(ticker)
+        price = float(data['close'][-1])
         amount = order_balance / price
         order = Account.my_account.buy_limit_order(ticker, price, amount)
         #for al in self.project.algorithms:
@@ -148,13 +146,13 @@ class BuyThread(QThread):
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), order))
 
     # 1/10 주문으로 설정
-    def order_testing(self, ticker):
+    def order_testing(self, ticker, data):
         order_balance = self.project.test_account.balance / 10 / 1.0005 # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
         if order_balance < 5000:
             print("balance not enough!")
             return
 
-        price = pu.get_current_price(ticker)
+        price = float(data['close'][-1])
         amount = order_balance / price
         test_order = {
             'currency': ticker, 'balance': amount, 'avg_buy_price': price, 'created_at': datetime.now()
@@ -178,7 +176,6 @@ class SellThread(QThread):
     # 주문단위로 판단하게 수정.
     def run(self):
         while True:
-            print('sell running')
             # 일단 테스트 주문을 기준으로 만들었다. 나중에 실제와도 호환되게 수정할것. 174line
             for order in self.project.test_holdings:
                 ticker = order['currency']
@@ -190,19 +187,17 @@ class SellThread(QThread):
 
                 if signal:
                     if self.project.status == 'Release':
-                        self.order_release(order)
+                        self.order_release(order, data)
                     elif self.project.status == 'Testing':
                         print('here?')
-                        self.order_testing(order)
+                        self.order_testing(order, data)
                     # print('there')
-                self.msleep(500)
-
-            self.msleep(500)
+                self.msleep(300)
 
     # 프로젝트가 Release 상태 시 실제 주문, 일단 풀주문으로 설정
-    def order_release(self, order):
+    def order_release(self, order, data):
         ticker = order['currency']
-        price = pu.get_current_price(ticker)
+        price = float(data['close'][-1])
         amount = Account.my_account.get_balance(ticker)
         order = Account.my_account.sell_limit_order(ticker, price, amount)
 
@@ -212,9 +207,9 @@ class SellThread(QThread):
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), order))
 
     # order 기반 주문
-    def order_testing(self, order):
+    def order_testing(self, order, data):
         ticker = order['currency']
-        price = float(pu.get_current_price(ticker))
+        price = float(data['close'][-1])
         amount = float(self.project.test_account.wallet[ticker]['balance'])
         test_order = {
             'currency': ticker, 'balance': amount, 'avg_sell_price': price, 'created_at': datetime.now()

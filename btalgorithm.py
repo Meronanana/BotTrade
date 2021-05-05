@@ -64,7 +64,7 @@ class BreakVolatilityAlg(Algorithm):
 # 두 번째 알고리즘!
 class CatchRapidStarAlg(Algorithm):
     title = '급등주 포착으로 빠르고 강력한 단타매매'
-    description = '변동성 돌파 전략 사용, 1분봉 기준 전 기간 (최고-최저)*3 만큼 오르면 매수'
+    description = '변동성 돌파 전략 사용, 1분봉 기준 전 기간 (최고-최저)*2 만큼 오르면 매수'
 
     def __init__(self):
         super().__init__()

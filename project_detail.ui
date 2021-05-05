@@ -188,6 +188,9 @@
    <property name="text">
     <string/>
    </property>
+   <property name="readOnly">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QLineEdit" name="total_bought_lineEdit">
    <property name="geometry">
@@ -200,6 +203,9 @@
    </property>
    <property name="text">
     <string/>
+   </property>
+   <property name="readOnly">
+    <bool>true</bool>
    </property>
   </widget>
   <widget class="QLineEdit" name="total_evaluate_lineEdit">
@@ -214,6 +220,9 @@
    <property name="text">
     <string/>
    </property>
+   <property name="readOnly">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QLineEdit" name="diff_lineEdit">
    <property name="geometry">
@@ -227,6 +236,9 @@
    <property name="text">
     <string/>
    </property>
+   <property name="readOnly">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QLineEdit" name="diff_rate_lineEdit">
    <property name="geometry">
@@ -239,6 +251,9 @@
    </property>
    <property name="text">
     <string/>
+   </property>
+   <property name="readOnly">
+    <bool>true</bool>
    </property>
   </widget>
   <widget class="QPushButton" name="reset_pushButton">

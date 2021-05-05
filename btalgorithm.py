@@ -77,6 +77,8 @@ class CatchRapidStarAlg(Algorithm):
 
         this_open = df.iloc[-1]['open']
         bf30_var = bf30['high'] - bf30['low']
+        if bf30_var < 0:
+            return False
         target = this_open + bf30_var * 2
 
         if df.iloc[-1]['close'] >= target:

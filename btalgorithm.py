@@ -64,7 +64,7 @@ class BreakVolatilityAlg(Algorithm):
 # 두 번째 알고리즘!
 class CatchRapidStarAlg(Algorithm):
     title = '급등주 포착으로 빠르고 강력한 단타매매'
-    description = '변동성 돌파 전략 사용, 1분봉 기준 전 기간 (최고-최저)*2 만큼 오르면 매수'
+    description = '변동성 돌파 전략 사용, 1분봉*5개 기준 전 기간 (최고-최저)*2 만큼 오르면 매수'
 
     def __init__(self):
         super().__init__()
@@ -76,11 +76,11 @@ class CatchRapidStarAlg(Algorithm):
         if df.iloc[-6]['open'] > df.iloc[-2]['close']:
             return False
 
-        df_highs = list(df['high']).reverse()
-        df_lows = list(df['low']).reverse()
-        high = df_highs[1]
-        low = df_lows[1]
-        for i in range(2, 6):
+        df_highs = list(df['high'])
+        df_lows = list(df['low'])
+        high = df_highs[-6]
+        low = df_lows[-6]
+        for i in range(-5, -1):
             if high < df_highs[i]:
                 high = df_highs[i]
             if low > df_lows[i]:

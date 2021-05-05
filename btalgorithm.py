@@ -64,29 +64,38 @@ class BreakVolatilityAlg(Algorithm):
 # 두 번째 알고리즘!
 class CatchRapidStarAlg(Algorithm):
     title = '급등주 포착으로 빠르고 강력한 단타매매'
-    description = '변동성 돌파 전략 사용, 30분봉 기준 전 기간 (최고-최저)*2 만큼 오르면 매수 후 20분 후 매도'
+    description = '변동성 돌파 전략 사용, 1분봉 기준 전 기간 (최고-최저)*3 만큼 오르면 매수'
 
     def __init__(self):
         super().__init__()
-        self.datatype = "minute30"
+        self.datatype = "minute1"
 
-    # 변동성 돌파 전략, k = 2
+    # 변동성 돌파 전략, k = 3, 최근 5분간 변동성 추적
     def buy_algorithm(self, data):
         df = data
-        bf30 = df.iloc[-2]  # 30분 전 데이터
+        if df.iloc[-6]['open'] > df.iloc[-2]['close']:
+            return False
+
+        df_highs = list(df['high']).reverse()
+        df_lows = list(df['low']).reverse()
+        high = df_highs[1]
+        low = df_lows[1]
+        for i in range(2, 6):
+            if high < df_highs[i]:
+                high = df_highs[i]
+            if low > df_lows[i]:
+                low = df_lows[i]
 
         this_open = df.iloc[-1]['open']
-        bf30_var = bf30['high'] - bf30['low']
-        if bf30_var < 0:
-            return False
-        target = this_open + bf30_var * 2
+        bf5_var = high - low
+        target = this_open + bf5_var * 2
 
         if df.iloc[-1]['close'] >= target:
             return True
         else:
             return False
 
-    # 매수 20분 후 매도
+    # 최소 매수 20분 후 매도
     def sell_algorithm(self, data, order, status):
         buy_order_time: datetime
 

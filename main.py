@@ -274,6 +274,13 @@ class MainWindow(QMainWindow, main_ui):
         self.algorithm_listWidget.addItem(item)
         MainWindow.algs[widget.title] = CatchRapidStarAlg()
 
+        item = QListWidgetItem(self.algorithm_listWidget)
+        widget = MainWindow.AlgInMain(StopLossAlg)
+        item.setSizeHint(QSize(0, 60))
+        self.algorithm_listWidget.setItemWidget(item, widget)
+        self.algorithm_listWidget.addItem(item)
+        MainWindow.algs[widget.title] = StopLossAlg()
+
     @pyqtSlot()
     def add_project(self):
         window = AddAlgInProject(self)

@@ -123,15 +123,14 @@ class BuyThread(QThread):
         while True:
             for ticker in self.project.tickers:
                 data: DataFrame
-                signal = True
+
+                signal = True   # 모두 통과해야 매수
                 for al in self.project.algorithms:
                     try:
                         data = pu.get_ohlcv(ticker=ticker, interval=al.datatype, count=30)  # data의 규격은 일단 ohclv로 함, 30개만 가져옴.
                     except:
                         print("요청 초과!")
-                        data = None
                         signal = False
-                    if data is None:
                         break
 
                     signal = signal and bool(al.buy_algorithm(data))
@@ -182,7 +181,6 @@ class BuyThread(QThread):
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), test_order))
         self.project.test_account.buy_order(test_order)
-        print(ticker)
 
 
 # 티커 관련 알고리즘 수정 필요, 매도량 및 매도가 관련 알고리즘 수정 필요.
@@ -202,18 +200,16 @@ class SellThread(QThread):
                 ticker = order['currency']
 
                 data: DataFrame
-                signal = True
+                signal = False  # 하나라도 통과하면 매도
                 for al in self.project.algorithms:
                     try:
                         data = pu.get_ohlcv(ticker=ticker, interval=al.datatype, count=30)  # data의 규격은 일단 ohclv로 함, 30개만 가져옴.
                     except:
                         print("요청 초과!")
-                        data = None
                         signal = False
-                    if data is None:
                         break
 
-                    signal = signal and bool(al.sell_algorithm(data, order, self.project.status))
+                    signal = signal or bool(al.sell_algorithm(data, order, self.project.status))
 
                 if signal:
                     if self.project.status == 'Release':
@@ -249,4 +245,3 @@ class SellThread(QThread):
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), test_order))
         self.project.test_account.sell_order(test_order)
-        print(ticker)

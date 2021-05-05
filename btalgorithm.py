@@ -102,3 +102,21 @@ class CatchRapidStarAlg(Algorithm):
         else:
             return False
 
+
+# 손절 알고리즘!
+class StopLossAlg(Algorithm):
+    title = '손절 알고리즘 : -3%'
+    description = '수익률이 -3%시, 추가 손해를 막기 위해 손절.'
+
+    def __init__(self):
+        super().__init__()
+        self.datatype = "day"
+
+    # -3%시, 손절
+    def sell_algorithm(self, data, order, status):
+        stop_loss = float(order['avg_buy_price']) * 0.995
+
+        if stop_loss > float(data.iloc[-1]['close']):
+            return True
+        else:
+            return False

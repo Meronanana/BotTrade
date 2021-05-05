@@ -114,7 +114,7 @@ class StopLossAlg(Algorithm):
 
     # -3%시, 손절
     def sell_algorithm(self, data, order, status):
-        stop_loss = float(order['avg_buy_price']) * 0.995
+        stop_loss = float(order['avg_buy_price']) * 0.97
 
         if stop_loss > float(data.iloc[-1]['close']):
             return True

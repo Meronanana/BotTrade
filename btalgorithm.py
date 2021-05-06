@@ -73,8 +73,6 @@ class CatchRapidStarAlg(Algorithm):
     # 변동성 돌파 전략, k = 4, 최근 5분간 변동성 추적
     def buy_algorithm(self, data):
         df = data
-        if df.iloc[-6]['open'] > df.iloc[-2]['close']:
-            return False
 
         df_highs = list(df['high'])
         df_lows = list(df['low'])

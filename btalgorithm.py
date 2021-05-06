@@ -20,6 +20,7 @@ class Algorithm:
         return False
 
 
+# 래리 윌리엄스 변동성 돌파전략
 class BreakVolatilityAlg(Algorithm):
     title = '래리 윌리엄스의 변동성 돌파전략'
     description = '변동성 돌파 전략 사용, 전일고점과 전일저점의 차이 만큼 당일 상승하면 매수 후 당일 종가 매도'
@@ -64,13 +65,13 @@ class BreakVolatilityAlg(Algorithm):
 # 두 번째 알고리즘!
 class CatchRapidStarAlg(Algorithm):
     title = '급등주 포착으로 빠르고 강력한 단타매매'
-    description = '변동성 돌파 전략 사용, 1분봉*5개 기준 전 기간 (최고-최저)*3 만큼 오르면 매수'
+    description = '변동성 돌파 전략 사용, 1분봉*5개 기준 전 기간 (최고-최저)*2 만큼 오르면 매수'
 
     def __init__(self):
         super().__init__()
         self.datatype = "minute1"
 
-    # 변동성 돌파 전략, k = 3, 최근 5분간 변동성 추적
+    # 변동성 돌파 전략, k = 2, 최근 5분간 변동성 추적
     def buy_algorithm(self, data):
         df = data
 
@@ -90,7 +91,7 @@ class CatchRapidStarAlg(Algorithm):
         if bf5_var < data.iloc[-2]['close'] * 0.01:
             return False
 
-        target = df.iloc[-1]['open'] + bf5_var * 3
+        target = df.iloc[-1]['open'] + bf5_var * 2
 
         if df.iloc[-1]['close'] >= target:
             return True

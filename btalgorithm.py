@@ -84,14 +84,13 @@ class CatchRapidStarAlg(Algorithm):
             if low > df_lows[i]:
                 low = df_lows[i]
 
-        this_open = df.iloc[-1]['open']
         bf5_var = high - low
 
-        # 변동성이 현재가의 1% 미만이면 건드리지 않음.
-        if bf5_var < data.iloc[-1]['close'] * 0.01:
+        # 변동성이 전봉종가의 1% 미만이면 건드리지 않음.
+        if bf5_var < data.iloc[-2]['close'] * 0.01:
             return False
 
-        target = this_open + bf5_var * 3
+        target = df.iloc[-1]['open'] + bf5_var * 3
 
         if df.iloc[-1]['close'] >= target:
             return True

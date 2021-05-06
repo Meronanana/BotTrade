@@ -113,11 +113,25 @@ class CatchRapidStarAlg(Algorithm):
             return False
         """
         # 거래량이 이전보다 적으면 매도
-        vol = list(data['volume'])
-        if vol[-1] < vol[-2]:
-            return True
+        buy_order_time: datetime
+
+        if status == 'Release':
+            get_time = str(order['created_at']).split('T')
+            buy_order_time = datetime(int(get_time[0][:4]), int(get_time[0][5:7]), int(get_time[0][-2:]),
+                                      int(get_time[1][:2]), int(get_time[1][3:5]), int(get_time[1][6:8]))
+        elif status == 'Testing':
+            buy_order_time = order['created_at']
+
+        if (datetime.now() - buy_order_time + timedelta(seconds=1)).seconds > 120:
+            vol = list(data['volume'])
+            if vol[-1] < vol[-2]:
+                return True
+            else:
+                return False
         else:
             return False
+
+
 
 
 # 손절 알고리즘!

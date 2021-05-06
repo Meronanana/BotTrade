@@ -64,13 +64,13 @@ class BreakVolatilityAlg(Algorithm):
 # 두 번째 알고리즘!
 class CatchRapidStarAlg(Algorithm):
     title = '급등주 포착으로 빠르고 강력한 단타매매'
-    description = '변동성 돌파 전략 사용, 1분봉*5개 기준 전 기간 (최고-최저)*4 만큼 오르면 매수'
+    description = '변동성 돌파 전략 사용, 1분봉*5개 기준 전 기간 (최고-최저)*3 만큼 오르면 매수'
 
     def __init__(self):
         super().__init__()
         self.datatype = "minute1"
 
-    # 변동성 돌파 전략, k = 4, 최근 5분간 변동성 추적
+    # 변동성 돌파 전략, k = 3, 최근 5분간 변동성 추적
     def buy_algorithm(self, data):
         df = data
 
@@ -86,7 +86,12 @@ class CatchRapidStarAlg(Algorithm):
 
         this_open = df.iloc[-1]['open']
         bf5_var = high - low
-        target = this_open + bf5_var * 4
+
+        # 변동성이 현재가의 1% 미만이면 건드리지 않음.
+        if bf5_var < data.iloc[-1]['close'] * 0.01:
+            return False
+
+        target = this_open + bf5_var * 3
 
         if df.iloc[-1]['close'] >= target:
             return True
@@ -128,8 +133,6 @@ class CatchRapidStarAlg(Algorithm):
                 return False
         else:
             return False
-
-
 
 
 # 손절 알고리즘!

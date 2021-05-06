@@ -122,7 +122,7 @@ class BuyThread(QThread):
     def run(self):
         while True:
             for ticker in self.project.tickers:
-                data: DataFrame
+                data: tuple
 
                 signal = True   # 모두 통과해야 매수
                 for al in self.project.algorithms:
@@ -133,7 +133,7 @@ class BuyThread(QThread):
                         signal = False
                         break
 
-                    signal = signal and bool(al.buy_algorithm(data))
+                    signal = signal and bool(al.buy_algorithm((ticker, data)))
 
                 if signal:
                     if self.project.status == 'Release':
@@ -199,7 +199,7 @@ class SellThread(QThread):
             for order in self.project.test_holdings:
                 ticker = order['currency']
 
-                data: DataFrame
+                data: tuple
                 signal = False  # 하나라도 통과하면 매도
                 for al in self.project.algorithms:
                     try:
@@ -209,7 +209,7 @@ class SellThread(QThread):
                         signal = False
                         break
 
-                    signal = signal or bool(al.sell_algorithm(data, order, self.project.status))
+                    signal = signal or bool(al.sell_algorithm((ticker, data), order, self.project.status))
 
                 if signal:
                     if self.project.status == 'Release':

@@ -255,11 +255,14 @@ class MainWindow(QMainWindow, main_ui):
         self.setupUi(self)
         self.setWindowIcon(QIcon("stock_icon.png"))
 
+        self.add_algorithms()
+
         self.log_pushButton.clicked.connect(self.trade_log)
         self.add_project_pushButton.clicked.connect(self.add_project)
         self.delete_project_pushButton.clicked.connect(self.delete_project)
 
         # QListWidget에 Item 추가하는 법
+        """
         item = QListWidgetItem(self.algorithm_listWidget)
         widget = MainWindow.AlgInMain(BreakVolatilityAlg)
         item.setSizeHint(QSize(0, 60))
@@ -280,6 +283,16 @@ class MainWindow(QMainWindow, main_ui):
         self.algorithm_listWidget.setItemWidget(item, widget)
         self.algorithm_listWidget.addItem(item)
         MainWindow.algs[widget.title] = StopLossAlg()
+        """
+
+    def add_algorithms(self):
+        for alg in Algorithm.algs:
+            item = QListWidgetItem(self.algorithm_listWidget)
+            widget = MainWindow.AlgInMain(alg)
+            item.setSizeHint(QSize(0, 60))
+            self.algorithm_listWidget.setItemWidget(item, widget)
+            self.algorithm_listWidget.addItem(item)
+            MainWindow.algs[widget.title] = alg()
 
     @pyqtSlot()
     def add_project(self):
@@ -313,6 +326,7 @@ class MainWindow(QMainWindow, main_ui):
 
 if __name__ == "__main__":
     key = Account()  # 암호 키값 초기화
+    Algorithm()      # 알고리즘 리스트 초기화
 
     app = QApplication(sys.argv)
     myWindow = MainWindow()

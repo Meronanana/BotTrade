@@ -1,5 +1,6 @@
 from datetime import datetime
 from datetime import timedelta
+from pandas import DataFrame
 
 # 각각의 프로젝트에 쓰일 알고리즘들을 모두 관리하는 모듈이다.
 
@@ -8,8 +9,16 @@ from datetime import timedelta
 class Algorithm:
     title: str
     description: str
+    algs: list
+    activated = False
 
     def __init__(self):
+        # 알고리즘 리스트 초기화
+        if not Algorithm.activated:
+            Algorithm.algs = []
+            Algorithm.algs.extend([BreakVolatilityAlg, CatchRapidStarAlg, StopLossAlg, ValuefeTradeAlg])
+            Algorithm.activated = True
+
         self.datatype: str
 
     # buy, sell은 하위 알고리즘 클래스들에서 재정의 할 것. 만약 정의 되어있지 않다면 True 반환해서 코드 진행에 피해 안가게 함.
@@ -127,7 +136,7 @@ class CatchRapidStarAlg(Algorithm):
 
         if (datetime.now() - buy_order_time + timedelta(seconds=1)).seconds > 120:
             vol = list(data['volume'])
-            if vol[-1] < vol[-2]:
+            if vol[-2] < vol[-3]:
                 return True
             else:
                 return False
@@ -150,5 +159,100 @@ class StopLossAlg(Algorithm):
 
         if stop_loss > float(data.iloc[-1]['close']):
             return True
+        else:
+            return False
+
+
+# 눌림목 매매 알고리즘, 생각보다 쉽지않다...
+class ValuefeTradeAlg(Algorithm):
+    title = '눌림목 매매 알고리즘'
+    description = '1차 상승 이후 눌림목에서 매수, 2차 상승 이후 매도'
+
+    def __init__(self):
+        super().__init__()
+        self.datatype = "minute1"
+
+    def buy_algorithm(self, data: DataFrame):
+        up_or_not = []
+        length = len(data.values)
+        for i in range(length):
+            if (data.iloc[i]['close'] - data.iloc[i]['open']) > 0:
+                up_or_not.append(True)
+            else:
+                up_or_not.append(False)
+
+        up_or_not.reverse()
+        up_or_not.pop(0)
+        false_stack = 0
+        true_stack = 0
+
+        # 그래프 형태 수집
+        signal = up_or_not[0]
+        while signal:
+            up_or_not.pop(0)
+            if false_stack == 0 and true_stack == 0:
+                if not up_or_not[0]:
+                    false_stack += 1
+                    continue
+                else:
+                    signal = False
+                    break
+            elif false_stack > 0 and true_stack == 0:
+                if not up_or_not[0]:
+                    false_stack += 1
+                    continue
+                else:
+                    true_stack += 1
+                    continue
+            elif false_stack > 0 and true_stack > 0:
+                if up_or_not[0]:
+                    true_stack += 1
+                    continue
+                else:
+                    signal = False
+                    break
+
+        # 양봉 3회 이상 음봉 2회 이하일 때 눌림목으로 판단
+        if true_stack < 3 or false_stack > 2:
+            return False
+
+        # 최근 상승 3개봉동안 거래량이 증가추세임
+        increase = True
+        for i in range(3):
+            increase = increase and (data['volume'][-3-false_stack-i] > data['volume'][-3-false_stack-i-1])
+        if not increase:
+            return False
+
+        # 하락분이 상승분의 60퍼센트를 넘지않을 때 눌림목으로 판단
+        descend = data['open'][-3-false_stack+1] - data['close'][-3]
+        ascend = data['close'][-3-false_stack] - data['open'][-3-false_stack-true_stack+1]
+        if ascend * 0.1 < descend < ascend * 0.6:
+            return True
+        else:
+            return False
+
+    # 거래량이 이전보다 꽤 낮아지거나 거대 음봉에 접어들면 매도
+    def sell_algorithm(self, data, order, status):
+        if status == 'Release':
+            get_time = str(order['created_at']).split('T')
+            buy_order_time = datetime(int(get_time[0][:4]), int(get_time[0][5:7]), int(get_time[0][-2:]),
+                                      int(get_time[1][:2]), int(get_time[1][3:5]), int(get_time[1][6:8]))
+        elif status == 'Testing':
+            buy_order_time = order['created_at']
+
+        if (datetime.now() - buy_order_time + timedelta(seconds=1)).seconds > 120:
+            # 거래량이 이전 분봉의 반토막이 나면 매도
+            vol = list(data['volume'])
+            vol_bool = vol[-2] < vol[-3] * 0.5
+
+            # 가격이 이전 분봉 상승분의 50% 이상 하락하면 매도
+            first_ascend = data.iloc[-2]['close'] - data.iloc[-2]['open']
+            after_descend = data.iloc[-1]['open'] - data.iloc[-1]['close']
+            var_bool = after_descend > first_ascend * 0.5
+
+            if vol_bool or var_bool:
+                return True
+            else:
+                return False
         else:
             return False

@@ -133,7 +133,7 @@ class BuyThread(QThread):
                         signal = False
                         break
 
-                    signal = signal and bool(al.buy_algorithm((ticker, data)))
+                    signal = signal and bool(al.buy_algorithm(data))
 
                 if signal:
                     if self.project.status == 'Release':
@@ -209,7 +209,7 @@ class SellThread(QThread):
                         signal = False
                         break
 
-                    signal = signal or bool(al.sell_algorithm((ticker, data), order, self.project.status))
+                    signal = signal or bool(al.sell_algorithm(data, order, self.project.status))
 
                 if signal:
                     if self.project.status == 'Release':

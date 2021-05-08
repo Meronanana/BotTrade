@@ -3,6 +3,7 @@ from pandas import DataFrame
 from PyQt5.QtCore import *
 from bttestaccount import *
 from datetime import datetime
+import asyncio
 
 
 # 각 매수 매도결정을 하는 프로젝트들을 모두 관리하는 모듈이다.
@@ -112,6 +113,16 @@ class Project:
             Project.runner_amount -= 1
             print(self.status)
 
+    async def refresh_project(self):
+        while True:
+            # await asyncio.sleep(3600)
+            self.buy_thread.terminate()
+            self.sell_thread.terminate()
+            await asyncio.sleep(5)
+            self.buy_thread.start()
+            self.sell_thread.start()
+            await asyncio.sleep(3600)
+
 
 # 티커 관련 알고리즘 수정 필요, 매수량 및 매수가 관련 알고리즘 수정 필요.
 class BuyThread(QThread):
@@ -122,6 +133,7 @@ class BuyThread(QThread):
     def run(self):
         while True:
             for ticker in self.project.tickers:
+                print(ticker)
                 data: tuple
 
                 signal = True   # 모두 통과해야 매수

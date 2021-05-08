@@ -173,39 +173,40 @@ class ValuefeTradeAlg(Algorithm):
         self.datatype = "minute1"
 
     def buy_algorithm(self, data: DataFrame):
-        up_or_not = []
-        length = len(data.values)
+        is_up = []
+        length = len(data['open'])
         for i in range(length):
             if (data.iloc[i]['close'] - data.iloc[i]['open']) > 0:
-                up_or_not.append(True)
+                is_up.append(True)
             else:
-                up_or_not.append(False)
+                is_up.append(False)
 
-        up_or_not.reverse()
-        up_or_not.pop(0)
+        is_up.reverse()
+        print(is_up)
+        print(is_up.pop(0))
         false_stack = 0
         true_stack = 0
 
         # 그래프 형태 수집
-        signal = up_or_not[0]
-        while signal:
-            up_or_not.pop(0)
+        signal = is_up[0]
+        while signal and false_stack < 5 and true_stack < 10:
+            print(is_up.pop(0))
             if false_stack == 0 and true_stack == 0:
-                if not up_or_not[0]:
+                if not is_up[0]:
                     false_stack += 1
                     continue
                 else:
                     signal = False
                     break
             elif false_stack > 0 and true_stack == 0:
-                if not up_or_not[0]:
+                if not is_up[0]:
                     false_stack += 1
                     continue
                 else:
                     true_stack += 1
                     continue
             elif false_stack > 0 and true_stack > 0:
-                if up_or_not[0]:
+                if is_up[0]:
                     true_stack += 1
                     continue
                 else:

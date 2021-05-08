@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from btproject import *
 from btalgorithm import *
+import devtools
 
 main_ui = uic.loadUiType("main.ui")[0]
 
@@ -260,6 +261,7 @@ class MainWindow(QMainWindow, main_ui):
         self.log_pushButton.clicked.connect(self.trade_log)
         self.add_project_pushButton.clicked.connect(self.add_project)
         self.delete_project_pushButton.clicked.connect(self.delete_project)
+        self.ram_usage_pushButton.clicked.connect(devtools.memory_usage)
 
         # QListWidget에 Item 추가하는 법
         """
@@ -269,20 +271,6 @@ class MainWindow(QMainWindow, main_ui):
         self.algorithm_listWidget.setItemWidget(item, widget)
         self.algorithm_listWidget.addItem(item)
         MainWindow.algs[widget.title] = BreakVolatilityAlg()
-
-        item = QListWidgetItem(self.algorithm_listWidget)
-        widget = MainWindow.AlgInMain(CatchRapidStarAlg)
-        item.setSizeHint(QSize(0, 60))
-        self.algorithm_listWidget.setItemWidget(item, widget)
-        self.algorithm_listWidget.addItem(item)
-        MainWindow.algs[widget.title] = CatchRapidStarAlg()
-
-        item = QListWidgetItem(self.algorithm_listWidget)
-        widget = MainWindow.AlgInMain(StopLossAlg)
-        item.setSizeHint(QSize(0, 60))
-        self.algorithm_listWidget.setItemWidget(item, widget)
-        self.algorithm_listWidget.addItem(item)
-        MainWindow.algs[widget.title] = StopLossAlg()
         """
 
     def add_algorithms(self):

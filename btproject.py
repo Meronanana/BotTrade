@@ -133,7 +133,6 @@ class BuyThread(QThread):
     def run(self):
         while True:
             for ticker in self.project.tickers:
-                print(ticker)
                 data: tuple
 
                 signal = True   # 모두 통과해야 매수

@@ -182,15 +182,12 @@ class ValuefeTradeAlg(Algorithm):
                 is_up.append(False)
 
         is_up.reverse()
-        print(is_up)
-        print(is_up.pop(0))
         false_stack = 0
         true_stack = 0
 
         # 그래프 형태 수집
         signal = is_up[0]
         while signal and false_stack < 5 and true_stack < 10:
-            print(is_up.pop(0))
             if false_stack == 0 and true_stack == 0:
                 if not is_up[0]:
                     false_stack += 1

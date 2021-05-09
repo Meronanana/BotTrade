@@ -63,8 +63,8 @@ class BreakVolatilityAlg(Algorithm):
         elif status == 'Testing':
             buy_order_time = order['created_at']
 
-        sell_time = datetime(buy_order_time.year, buy_order_time.month, buy_order_time.day+1
-                             , hour=9, minute=0, second=0)
+        sell_time = datetime(buy_order_time.year, buy_order_time.month, buy_order_time.day
+                             , hour=0, minute=0, second=0) + timedelta(days=1)
         if datetime.now() > sell_time:
             return True
         else:

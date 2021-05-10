@@ -16,7 +16,7 @@ class Algorithm:
         # 알고리즘 리스트 초기화
         if not Algorithm.activated:
             Algorithm.algs = []
-            Algorithm.algs.extend([BreakVolatilityAlg, CatchRapidStarAlg, StopLossAlg, ValuefeTradeAlg])
+            Algorithm.algs.extend([BreakVolatilityAlg, LowValueAlg, StopLossAlg])
             Algorithm.activated = True
 
         self.datatype: str
@@ -32,7 +32,7 @@ class Algorithm:
 # 래리 윌리엄스 변동성 돌파전략
 class BreakVolatilityAlg(Algorithm):
     title = '래리 윌리엄스의 변동성 돌파전략'
-    description = '변동성 돌파 전략 사용, 전일고점과 전일저점의 차이 만큼 당일 상승하면 매수 후 당일 종가 매도'
+    description = '변동성 돌파 전략 사용, 전일고점과 전일저점의 차이 만큼 당일 상승하면 매수 후 당일 12시 매도'
 
     def __init__(self):
         super().__init__()
@@ -40,6 +40,10 @@ class BreakVolatilityAlg(Algorithm):
 
     # 변동성 돌파 전략, k = 1
     def buy_algorithm(self, data):
+        now_hour = datetime.now().hour
+        if 0 <= now_hour < 10:
+            return False
+
         df = data
         yd = df.iloc[-2]  # yesterday data
 
@@ -52,7 +56,7 @@ class BreakVolatilityAlg(Algorithm):
         else:
             return False
 
-    # 당일 종가 매도
+    # 당일 12시 매도
     def sell_algorithm(self, data, order, status):
         buy_order_time: datetime
 
@@ -71,7 +75,7 @@ class BreakVolatilityAlg(Algorithm):
             return False
 
 
-# 두 번째 알고리즘!
+# 두 번째 알고리즘! / 임시 폐지
 class CatchRapidStarAlg(Algorithm):
     title = '급등주 포착으로 빠르고 강력한 단타매매'
     description = '변동성 돌파 전략 사용, 1분봉*5개 기준 전 기간 (최고-최저)*2 만큼 오르면 매수'
@@ -163,7 +167,7 @@ class StopLossAlg(Algorithm):
             return False
 
 
-# 눌림목 매매 알고리즘, 생각보다 쉽지않다...
+# 눌림목 매매 알고리즘 / 임시 폐지
 class ValuefeTradeAlg(Algorithm):
     title = '눌림목 매매 알고리즘'
     description = '1차 상승 이후 눌림목에서 매수, 2차 상승 이후 매도'
@@ -182,33 +186,33 @@ class ValuefeTradeAlg(Algorithm):
                 is_up.append(False)
 
         is_up.reverse()
+        is_up.pop(0)
         false_stack = 0
         true_stack = 0
 
         # 그래프 형태 수집
         signal = is_up[0]
-        while signal and false_stack < 5 and true_stack < 10:
+        while signal:
             if false_stack == 0 and true_stack == 0:
                 if not is_up[0]:
                     false_stack += 1
-                    continue
                 else:
                     signal = False
-                    break
             elif false_stack > 0 and true_stack == 0:
                 if not is_up[0]:
                     false_stack += 1
-                    continue
                 else:
                     true_stack += 1
-                    continue
             elif false_stack > 0 and true_stack > 0:
                 if is_up[0]:
                     true_stack += 1
-                    continue
                 else:
                     signal = False
-                    break
+
+            if len(is_up) == 1:
+                signal = False
+            else:
+                is_up.pop(0)
 
         # 양봉 3회 이상 음봉 2회 이하일 때 눌림목으로 판단
         if true_stack < 3 or false_stack > 2:
@@ -254,3 +258,87 @@ class ValuefeTradeAlg(Algorithm):
                 return False
         else:
             return False
+
+
+# 기존 내가 매매하던 방법대로 가자. 저평가 매수 전략
+class LowValueAlg(Algorithm):
+    title = '저평가 매수 전략'
+    description = '작전이 들어올 만한 종목을 미리 선정해서 매수함.'
+
+    def __init__(self):
+        super().__init__()
+        self.datatype = 'day'
+
+        # 변동성이 낮은 3개 종목 선정, [변동폭, 카운트]
+        self.low_volatility = []
+        self.max_size = 3
+
+    # 내림차순으로 정렬
+    def sort_lower(self):
+        lt = self.low_volatility
+        for i in range(len(lt)):
+            for j in range(i+1, len(lt)):
+                if lt[i][0] < lt[j][0]:
+                    temp = lt[i]
+                    lt[i] = lt[j]
+                    lt[j] = temp
+
+        self.low_volatility = lt
+
+    # 작업마다 수명 1씩 올리기, ticker 개수 초과 이면 리스트에서 제거
+    def aging(self):
+        pop_list = []
+        for i in range(len(self.low_volatility)):
+            self.low_volatility[i][1] += 1
+            if self.low_volatility[i][1] > 117:
+                pop_list.append(i)
+
+        pop_list.reverse()
+        for i in pop_list:
+            self.low_volatility.pop(i)
+
+        self.sort_lower()
+
+    def buy_algorithm(self, data):
+        self.aging()
+
+        # 과거 10일간 종가 대비 변동폭의 평균
+        day10_ohclv = data.iloc[range(-11, -1)]
+        day10_vol_avg = 0
+        for i in range(len(day10_ohclv)):
+            this_ohclv = day10_ohclv.iloc[-(i+1)]
+            day10_vol_avg = (day10_vol_avg * i + (this_ohclv['high'] - this_ohclv['low']) / this_ohclv['close'] * 100) / (i+1)
+
+        # 리스트가 비었으면 추가
+        if len(self.low_volatility) < self.max_size:
+            self.low_volatility.append([day10_vol_avg, 1])
+            self.sort_lower()
+            return False
+
+        # 리스트가 꽉 차있으면 비교하여 밀어내기
+        if self.low_volatility[0][0] >= day10_vol_avg:
+            self.low_volatility[0] = [day10_vol_avg, 1]
+            self.sort_lower()
+
+        # 변동폭이 하위 2위 변동폭보다 크면 False
+        if self.low_volatility[1][0] < day10_vol_avg:
+            return False
+
+        # 지정된 시간에만 매매
+        now = datetime.now()
+        buy_start_time = datetime(now.year, now.month, now.day, 8, 50, 0)
+        buy_end_time = datetime(now.year, now.month, now.day, 8, 59, 30)
+        if buy_start_time < now < buy_end_time:
+            return True
+        else:
+            return False
+
+    # 이익 실현: +5%, 손절매: -3%
+    def sell_algorithm(self, data, order, status):
+        now_price = data['close'][-1]
+        avg_buy_price = order['avg_buy_price']
+        if avg_buy_price * 0.97 < now_price < avg_buy_price * 1.05:
+            return False
+        else:
+            return True
+

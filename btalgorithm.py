@@ -28,6 +28,18 @@ class Algorithm:
     def sell_algorithm(self, data, order, status):
         return False
 
+    # 각자 다른 시간 포맷을 datetime형으로 반환
+    def to_datetime(self, time: str, status: str):
+        temp: datetime
+        if status == 'Release':
+            get_time = time.split('T')
+            temp = datetime(int(get_time[0][:4]), int(get_time[0][5:7]), int(get_time[0][-2:])
+                                      , int(get_time[1][:2]), int(get_time[1][3:5]), int(get_time[1][6:8]))
+        elif status == 'Testing':
+            temp = time
+
+        return temp
+
 
 # 래리 윌리엄스 변동성 돌파전략
 class BreakVolatilityAlg(Algorithm):
@@ -58,14 +70,7 @@ class BreakVolatilityAlg(Algorithm):
 
     # 당일 12시 매도
     def sell_algorithm(self, data, order, status):
-        buy_order_time: datetime
-
-        if status == 'Release':
-            get_time = str(order['created_at']).split('T')
-            buy_order_time = datetime(int(get_time[0][:4]), int(get_time[0][5:7]), int(get_time[0][-2:])
-                                      , int(get_time[1][:2]), int(get_time[1][3:5]), int(get_time[1][6:8]))
-        elif status == 'Testing':
-            buy_order_time = order['created_at']
+        buy_order_time = self.to_datetime(order['created_at'], status)
 
         sell_time = datetime(buy_order_time.year, buy_order_time.month, buy_order_time.day
                              , hour=0, minute=0, second=0) + timedelta(days=1)
@@ -112,22 +117,6 @@ class CatchRapidStarAlg(Algorithm):
             return False
 
     def sell_algorithm(self, data, order, status):
-        """
-        최소 매수 20분 후 매도
-        buy_order_time: datetime
-
-        if status == 'Release':
-            get_time = str(order['created_at']).split('T')
-            buy_order_time = datetime(int(get_time[0][:4]), int(get_time[0][5:7]), int(get_time[0][-2:]),
-                                          int(get_time[1][:2]), int(get_time[1][3:5]), int(get_time[1][6:8]))
-        elif status == 'Testing':
-            buy_order_time = order['created_at']
-
-        if (datetime.now() - buy_order_time + timedelta(seconds=1)).seconds > 1200:
-            return True
-        else:
-            return False
-        """
         # 거래량이 이전보다 적으면 매도
         buy_order_time: datetime
 
@@ -235,12 +224,7 @@ class ValuefeTradeAlg(Algorithm):
 
     # 거래량이 이전보다 꽤 낮아지거나 거대 음봉에 접어들면 매도
     def sell_algorithm(self, data, order, status):
-        if status == 'Release':
-            get_time = str(order['created_at']).split('T')
-            buy_order_time = datetime(int(get_time[0][:4]), int(get_time[0][5:7]), int(get_time[0][-2:]),
-                                      int(get_time[1][:2]), int(get_time[1][3:5]), int(get_time[1][6:8]))
-        elif status == 'Testing':
-            buy_order_time = order['created_at']
+        buy_order_time = self.to_datetime(order['created_at'], status)
 
         if (datetime.now() - buy_order_time + timedelta(seconds=1)).seconds > 120:
             # 거래량이 이전 분봉의 반토막이 나면 매도

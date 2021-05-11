@@ -11,10 +11,10 @@ import devtools
 main_ui = uic.loadUiType("main.ui")[0]
 
 
-class AddAlgInProject(QDialog):
+class AddProject(QDialog):
     class AlgInProject(QWidget):
         def __init__(self, alg: Algorithm):
-            super(AddAlgInProject.AlgInProject, self).__init__()
+            super(AddProject.AlgInProject, self).__init__()
             ui = 'algorithms_in_project.ui'
             uic.loadUi(ui, self)
 
@@ -24,12 +24,13 @@ class AddAlgInProject(QDialog):
 
     class SetProjectDetail(QDialog):
         def __init__(self, parent, detail: tuple):
-            super(AddAlgInProject.SetProjectDetail, self).__init__(parent)
+            super(AddProject.SetProjectDetail, self).__init__(parent)
             ui = 'set_project_detail.ui'
             uic.loadUi(ui, self)
 
             self.title = detail[0]
             self.description = detail[1]
+            self.divide_for = detail[2]
 
             self.initialize_detail()
 
@@ -41,28 +42,31 @@ class AddAlgInProject(QDialog):
         def initialize_detail(self):
             self.title_lineEdit.setText(self.title)
             self.description_lineEdit.setText(self.description)
+            self.divide_for_spinBox.setValue(int(self.divide_for))
 
         @pyqtSlot()
         def accept(self):
             self.accepted = True
             self.title = str(self.title_lineEdit.text())
             self.description = str(self.description_lineEdit.text())
-            super(AddAlgInProject.SetProjectDetail, self).accept()
+            self.divide_for = int(self.divide_for_spinBox.value())
+            super(AddProject.SetProjectDetail, self).accept()
 
         @pyqtSlot()
         def reject(self):
             self.accepted = False
-            super(AddAlgInProject.SetProjectDetail, self).reject()
+            super(AddProject.SetProjectDetail, self).reject()
 
     def __init__(self, parent):
-        super(AddAlgInProject, self).__init__(parent)
+        super(AddProject, self).__init__(parent)
         ui = 'add_algorithms_in_project.ui'
         uic.loadUi(ui, self)
         self.algorithm_comboBox.addItems(MainWindow.algs.keys())
 
-        self.algorithms = []
         self.title = 'Untitled'
         self.description = 'No description'
+        self.algorithms = []
+        self.divide_for = '1'
 
         self.detail_pushButton.clicked.connect(self.set_detail)
         self.add_alg_pushButton.clicked.connect(self.add_algorithm)
@@ -74,17 +78,18 @@ class AddAlgInProject(QDialog):
 
     @pyqtSlot()
     def set_detail(self):
-        window = AddAlgInProject.SetProjectDetail(self, (self.title, self.description))
+        window = AddProject.SetProjectDetail(self, (self.title, self.description, self.divide_for))
         window.exec_()
         if window.accepted:
             self.title = str(window.title)
             self.description = str(window.description)
+            self.divide_for = int(window.divide_for)
 
     @pyqtSlot()
     def add_algorithm(self):
         item = QListWidgetItem(self.algorithm_listWidget)
         self.algorithms.append(MainWindow.algs[self.algorithm_comboBox.currentText()])
-        widget = AddAlgInProject.AlgInProject(self.algorithms[-1])
+        widget = AddProject.AlgInProject(self.algorithms[-1])
         item.setSizeHint(QSize(0, 50))
         self.algorithm_listWidget.setItemWidget(item, widget)
         self.algorithm_listWidget.addItem(item)
@@ -98,12 +103,12 @@ class AddAlgInProject(QDialog):
     @pyqtSlot()
     def accept(self):
         self.accepted = True
-        super(AddAlgInProject, self).accept()
+        super(AddProject, self).accept()
 
     @pyqtSlot()
     def reject(self):
         self.accepted = False
-        super(AddAlgInProject, self).reject()
+        super(AddProject, self).reject()
 
 
 class TradeLog(QDialog):
@@ -263,17 +268,8 @@ class MainWindow(QMainWindow, main_ui):
         self.delete_project_pushButton.clicked.connect(self.delete_project)
         self.ram_usage_pushButton.clicked.connect(devtools.memory_usage)
 
-        # QListWidget에 Item 추가하는 법
-        """
-        item = QListWidgetItem(self.algorithm_listWidget)
-        widget = MainWindow.AlgInMain(BreakVolatilityAlg)
-        item.setSizeHint(QSize(0, 60))
-        self.algorithm_listWidget.setItemWidget(item, widget)
-        self.algorithm_listWidget.addItem(item)
-        MainWindow.algs[widget.title] = BreakVolatilityAlg()
-        """
-
     def add_algorithms(self):
+        # QListWidget에 Item 추가하는 법
         for alg in Algorithm.algs:
             item = QListWidgetItem(self.algorithm_listWidget)
             widget = MainWindow.AlgInMain(alg)
@@ -284,13 +280,13 @@ class MainWindow(QMainWindow, main_ui):
 
     @pyqtSlot()
     def add_project(self):
-        window = AddAlgInProject(self)
+        window = AddProject(self)
         window.exec_()
         if window.accepted:
             # 프로젝트 생성해야 함
             item = QListWidgetItem(self.projects_listWidget)
             # items = MainWindow.ProjectLWI(item)
-            pj = Project('first_pj', str(window.title), window.algorithms)
+            pj = Project(str(window.title), window.algorithms, window.divide_for)
             widget = MainWindow.ProjectInMain(pj)
             item.setSizeHint(QSize(0, 70))
 

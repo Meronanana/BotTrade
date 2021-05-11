@@ -62,17 +62,20 @@ class Project:
     order_log = []
     runner_amount = 0
 
-    def __init__(self, name: str, title: str, algs: list):  # 인자로 알고리즘 객체의 리스트를 받음
+    # args: [타이틀, 알고리즘 리스트, 자금 분할, ]
+    def __init__(self, title: str = "Untitled", algs: list = [], div: int = '1'):
         # self.name = name
-        self.title = title
+        self.title = title  # 프로젝트 제목
         self.algorithms = algs  # 알고리즘 객체로 이루어진 리스트
         self.tickers = pu.get_tickers(fiat="KRW")  # 티커는 krw시장 전 종목
         self.buy_thread = BuyThread(self)
         self.sell_thread = SellThread(self)
-        self.status = 'Off'
+        self.status = 'Off'  # 현재 프로젝트 상태 Off로 초기화
         self.balance = 10000  # 프로젝트에서 사용 가능한 현금량
-        self.real_holdings = []
-        self.test_holdings = []
+        self.real_holdings = []  # 실제 계좌에서 매수한 종목 리스트
+        self.test_holdings = []  # 테스트 계좌에서 매수한 종목 리스트
+
+        self.divide_for = div
 
         self.test_account = TestAccount()
 
@@ -169,11 +172,10 @@ class BuyThread(QThread):
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), order))
 
-    # 전체의 1/5 주문으로 설정
     def order_testing(self, ticker, data):
         # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
         try:
-            order_balance = self.project.test_account.balance / (5-len(self.project.test_account.wallet.keys())) / 1.0005
+            order_balance = self.project.test_account.balance / (self.project.divide_for-len(self.project.test_account.wallet.keys())) / 1.0005
         except:
             order_balance = 0
 

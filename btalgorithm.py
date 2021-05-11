@@ -1,6 +1,7 @@
 from datetime import datetime
 from datetime import timedelta
 from pandas import DataFrame
+import random
 
 # 각각의 프로젝트에 쓰일 알고리즘들을 모두 관리하는 모듈이다.
 
@@ -16,10 +17,10 @@ class Algorithm:
         # 알고리즘 리스트 초기화
         if not Algorithm.activated:
             Algorithm.algs = []
-            Algorithm.algs.extend([BreakVolatilityAlg, LowValueAlg, StopLossAlg])
+            Algorithm.algs.extend([BreakVolatilityAlg, LowValueAlg, StopLossAlg, TestChimpanzeeAlg])
             Algorithm.activated = True
 
-        self.datatype: str
+        self.datatype = 'day'
 
     # buy, sell은 하위 알고리즘 클래스들에서 재정의 할 것. 만약 정의 되어있지 않다면 True 반환해서 코드 진행에 피해 안가게 함.
     def buy_algorithm(self, data):
@@ -39,6 +40,30 @@ class Algorithm:
             temp = time
 
         return temp
+
+
+# 테스트용 침팬지 매수 매도 알고리즘
+class TestChimpanzeeAlg(Algorithm):
+    title = '테스트용 침팬지'
+    description = '랜덤으로 매수와 매도를 결정한다'
+
+    def __init__(self):
+        super().__init__()
+        self.datatype = 'day'
+
+    # 1% 확률로 매수
+    def buy_algorithm(self, data):
+        if random.random() * 100 < 1:
+            return True
+        else:
+            return False
+
+    # 0.05% 확률로 매도
+    def sell_algorithm(self, data, order, status):
+        if random.random() * 100 < 0.05:
+            return True
+        else:
+            return False
 
 
 # 래리 윌리엄스 변동성 돌파전략

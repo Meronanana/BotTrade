@@ -330,7 +330,6 @@ class MainWindow(QMainWindow, main_ui):
         window.exec_()
         if window.accepted:
             pj = Project(title=str(window.title), algs=window.algorithms, div=window.divide_for)
-            print(pj.get_project_data())
             self.create_project_in_main(pj)
 
     @pyqtSlot()

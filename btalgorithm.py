@@ -290,7 +290,7 @@ class LowValueAlg(Algorithm):
         pop_list = []
         for i in range(len(self.low_volatility)):
             self.low_volatility[i][1] += 1
-            if self.low_volatility[i][1] > 117:
+            if self.low_volatility[i][1] > 118:
                 pop_list.append(i)
 
         pop_list.reverse()
@@ -298,6 +298,17 @@ class LowValueAlg(Algorithm):
             self.low_volatility.pop(i)
 
         self.sort_lower()
+
+    # 지금이 매매시간인지 판단
+    def is_right_time(self):
+        # 지정된 시간에만 매매
+        now = datetime.now()
+        buy_start_time = datetime(now.year, now.month, now.day, 11, 48, 0)
+        buy_end_time = datetime(now.year, now.month, now.day, 11, 52, 30)
+        if buy_start_time < now < buy_end_time:
+            return True
+        else:
+            return False
 
     def buy_algorithm(self, data):
         self.aging()
@@ -309,6 +320,12 @@ class LowValueAlg(Algorithm):
             this_ohclv = day10_ohclv.iloc[-(i+1)]
             day10_vol_avg = (day10_vol_avg * i + (this_ohclv['high'] - this_ohclv['low']) / this_ohclv['close'] * 100) / (i+1)
 
+        # 아예 값이 같으면 대체
+        for i in range(len(self.low_volatility)):
+            if self.low_volatility[i][0] == day10_vol_avg:
+                self.low_volatility[i] = [day10_vol_avg, 1]
+                return self.is_right_time()
+
         # 리스트가 비었으면 추가
         if len(self.low_volatility) < self.max_size:
             self.low_volatility.append([day10_vol_avg, 1])
@@ -319,19 +336,9 @@ class LowValueAlg(Algorithm):
         if self.low_volatility[0][0] >= day10_vol_avg:
             self.low_volatility[0] = [day10_vol_avg, 1]
             self.sort_lower()
+            return self.is_right_time()
 
-        # 변동폭이 하위 2위 변동폭보다 크면 False
-        if self.low_volatility[1][0] < day10_vol_avg:
-            return False
-
-        # 지정된 시간에만 매매
-        now = datetime.now()
-        buy_start_time = datetime(now.year, now.month, now.day, 8, 50, 0)
-        buy_end_time = datetime(now.year, now.month, now.day, 8, 59, 30)
-        if buy_start_time < now < buy_end_time:
-            return True
-        else:
-            return False
+        return False
 
     # 이익 실현: +5%, 손절매: -3%
     def sell_algorithm(self, data, order, status):

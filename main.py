@@ -341,6 +341,8 @@ class MainWindow(QMainWindow, main_ui):
     @pyqtSlot()
     def delete_project(self):
         item = self.projects_listWidget.currentItem()
+        project = MainWindow.pjs[self.projects_listWidget.itemWidget(item).title]
+        project.project_off()
         del MainWindow.pjs[self.projects_listWidget.itemWidget(item).title]
         self.projects_listWidget.takeItem(self.projects_listWidget.row(item))
 

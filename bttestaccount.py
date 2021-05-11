@@ -5,10 +5,7 @@ import time
 class TestAccount:
     def __init__(self, balance: int = 1000000, wallet: dict = None):
         self.balance = balance
-        if wallet is None:
-            self.wallet = {}
-        else:
-            self.wallet = wallet
+        self.wallet = {} if wallet is None else wallet
 
     def get_acc_data(self):
         return [self.balance, self.wallet]

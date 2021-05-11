@@ -78,6 +78,9 @@ class Project:
 
         self.test_account = TestAccount() if test_acc is None else test_acc
 
+    def __del__(self):
+        self.project_off()
+
     def get_project_data(self):
         # [title, algs, tickers, r_hold, t_hold, div, test_acc]
         return [self.title, self.algorithms, self.tickers, self.real_holdings,

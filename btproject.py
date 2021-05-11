@@ -62,37 +62,21 @@ class Project:
     order_log = []
     runner_amount = 0
 
-    # args: [타이틀, 알고리즘 리스트, 자금 분할, ], 첫 프로젝트 생성
-    def __init__(self, title: str = "Untitled", algs: list = [], div: int = '1'):
-        # self.name = name
-        self.title = title  # 프로젝트 제목
-        self.algorithms = algs  # 알고리즘 객체로 이루어진 리스트
-        self.tickers = pu.get_tickers(fiat="KRW")  # 티커는 krw시장 전 종목
-        self.buy_thread = BuyThread(self)
-        self.sell_thread = SellThread(self)
-        self.status = 'Off'  # 현재 프로젝트 상태 Off로 초기화
-        self.balance = 10000  # 프로젝트에서 사용 가능한 현금량
-        self.real_holdings = []  # 실제 계좌에서 매수한 종목 리스트
-        self.test_holdings = []  # 테스트 계좌에서 매수한 종목 리스트
-        self.divide_for = div  # 자금 분할 개수
-
-        self.test_account = TestAccount()
-
     # 프로젝트 불러오기로 생성: [title, algs, r_hold, t_hold, div, test_acc]
-    def __init__(self, title: str = "Untitled", algs: list = [], tickers: dict = pu.get_tickers(fiat="KRW")
-                 , r_hold: list = [], t_hold: list = [], div: int = 1, test_acc: TestAccount = TestAccount(1000000, {})):
+    def __init__(self, title: str = "Untitled", algs: list = [], tickers: dict = None,
+                 r_hold: list = None, t_hold: list = None, div: int = 1, test_acc: TestAccount = None):
         self.title = title  # 프로젝트 제목
         self.algorithms = algs  # 알고리즘 객체로 이루어진 리스트
-        self.tickers = tickers  # 티커는 krw시장 전 종목
+        self.tickers = pu.get_tickers(fiat="KRW") if tickers is None else tickers
         self.buy_thread = BuyThread(self)
         self.sell_thread = SellThread(self)
         self.status = 'Off'  # 현재 프로젝트 상태 Off로 초기화
         self.balance = 10000  # 프로젝트에서 사용 가능한 현금량
-        self.real_holdings = r_hold  # 실제 계좌에서 매수한 종목 리스트
-        self.test_holdings = t_hold  # 테스트 계좌에서 매수한 종목 리스트
+        self.real_holdings = [] if r_hold is None else r_hold  # 실제 계좌에서 매수한 종목 리스트
+        self.test_holdings = [] if t_hold is None else t_hold  # 테스트 계좌에서 매수한 종목 리스트
         self.divide_for = div  # 자금 분할 개수
 
-        self.test_account = test_acc
+        self.test_account = TestAccount() if test_acc is None else test_acc
 
     def get_project_data(self):
         # [title, algs, tickers, r_hold, t_hold, div, test_acc]

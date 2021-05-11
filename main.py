@@ -16,11 +16,11 @@ def load_data():
     data = {}
     try:
         with open('projectFiles.pickle', 'rb') as file:
-            serialized = pickle.load(file)[0]
+            serialized = pickle.load(file)
             for line in serialized:
                 # [title, algs, tickers, r_hold, t_hold, div, test_acc]
-                data[line[0]] = Project(title=line[0], algs=line[1], tickers=line[2], r_hold=line[3]
-                                        , t_hold=line[4], div=line[5], test_acc=TestAccount(line[6][0], line[6][1]))
+                data[line[0]] = Project(title=line[0], algs=line[1], tickers=line[2], r_hold=line[3],
+                                        t_hold=line[4], div=line[5], test_acc=TestAccount(line[6][0], line[6][1]))
             return data
     except(FileNotFoundError, EOFError):
         pass
@@ -31,7 +31,8 @@ def write_data(data: dict):
     serialized = []
     for title in data.keys():
         # [title, algs, r_hold, t_hold, div, test_acc]
-        serialized.append([data[title].get_project_data()])
+        add = data[title].get_project_data()
+        serialized.append(add)
 
     with open('projectFiles.pickle', 'wb') as file:
         pickle.dump(serialized, file)
@@ -278,7 +279,6 @@ class MainWindow(QMainWindow, main_ui):
 
         @pyqtSlot()
         def show_detail(self):
-            # 추후 세부사항 표시해주는 위젯 띄우기
             window = ProjectDetail(self, self.project)
             window.exec_()
 
@@ -301,7 +301,7 @@ class MainWindow(QMainWindow, main_ui):
         self.delete_project_pushButton.clicked.connect(self.delete_project)
         self.ram_usage_pushButton.clicked.connect(devtools.memory_usage)
 
-    # 알고리즘들을 다이얼로그에 표시
+    # 알고리즘들을 Dialog에 표시
     def add_algorithms(self):
         for alg in Algorithm.algs:
             # QListWidget에 Item 추가하는 법
@@ -329,7 +329,9 @@ class MainWindow(QMainWindow, main_ui):
         window = AddProject(self)
         window.exec_()
         if window.accepted:
-            self.create_project_in_main(str(window.title), window.algorithms, window.divide_for)
+            pj = Project(title=str(window.title), algs=window.algorithms, div=window.divide_for)
+            print(pj.get_project_data())
+            self.create_project_in_main(pj)
 
     @pyqtSlot()
     def trade_log(self):

@@ -31,7 +31,7 @@ class Algorithm:
 
     # 각자 다른 시간 포맷을 datetime형으로 반환
     @staticmethod
-    def to_datetime(self, time: str, status: str):
+    def to_datetime(time: str, status: str):
         temp: datetime
         if status == 'Release':
             get_time = time.split('T')

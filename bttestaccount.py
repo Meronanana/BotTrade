@@ -1,11 +1,14 @@
 import pyupbit as pu
 import time
 
+
 class TestAccount:
-    def __init__(self):
-        # 현금, 보유 암호화폐
-        self.balance = 1000000
-        self.wallet = {}
+    def __init__(self, balance: int = 1000000, wallet: dict = {}):
+        self.balance = balance
+        self.wallet = wallet
+
+    def get_acc_data(self):
+        return [self.balance, self.wallet]
 
     # order = {'currency': self.ticker, 'balance': amount, 'avg_buy_price': price, 'created_at': time.ctime(), 'status': 'Testing', 'side': 'bid'}
     def buy_order(self, order):

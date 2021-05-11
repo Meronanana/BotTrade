@@ -36,7 +36,7 @@ class Algorithm:
         if status == 'Release':
             get_time = time.split('T')
             temp = datetime(int(get_time[0][:4]), int(get_time[0][5:7]), int(get_time[0][-2:])
-                                      , int(get_time[1][:2]), int(get_time[1][3:5]), int(get_time[1][6:8]))
+                            , int(get_time[1][:2]), int(get_time[1][3:5]), int(get_time[1][6:8]))
         elif status == 'Testing':
             temp = time
 

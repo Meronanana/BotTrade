@@ -62,7 +62,7 @@ class Project:
     order_log = []
     runner_amount = 0
 
-    # args: [타이틀, 알고리즘 리스트, 자금 분할, ]
+    # args: [타이틀, 알고리즘 리스트, 자금 분할, ], 첫 프로젝트 생성
     def __init__(self, title: str = "Untitled", algs: list = [], div: int = '1'):
         # self.name = name
         self.title = title  # 프로젝트 제목
@@ -74,10 +74,30 @@ class Project:
         self.balance = 10000  # 프로젝트에서 사용 가능한 현금량
         self.real_holdings = []  # 실제 계좌에서 매수한 종목 리스트
         self.test_holdings = []  # 테스트 계좌에서 매수한 종목 리스트
-
-        self.divide_for = div
+        self.divide_for = div  # 자금 분할 개수
 
         self.test_account = TestAccount()
+
+    # 프로젝트 불러오기로 생성: [title, algs, r_hold, t_hold, div, test_acc]
+    def __init__(self, title: str = "Untitled", algs: list = [], tickers: dict = pu.get_tickers(fiat="KRW")
+                 , r_hold: list = [], t_hold: list = [], div: int = 1, test_acc: TestAccount = TestAccount(1000000, {})):
+        self.title = title  # 프로젝트 제목
+        self.algorithms = algs  # 알고리즘 객체로 이루어진 리스트
+        self.tickers = tickers  # 티커는 krw시장 전 종목
+        self.buy_thread = BuyThread(self)
+        self.sell_thread = SellThread(self)
+        self.status = 'Off'  # 현재 프로젝트 상태 Off로 초기화
+        self.balance = 10000  # 프로젝트에서 사용 가능한 현금량
+        self.real_holdings = r_hold  # 실제 계좌에서 매수한 종목 리스트
+        self.test_holdings = t_hold  # 테스트 계좌에서 매수한 종목 리스트
+        self.divide_for = div  # 자금 분할 개수
+
+        self.test_account = test_acc
+
+    def get_project_data(self):
+        # [title, algs, tickers, r_hold, t_hold, div, test_acc]
+        return [self.title, self.algorithms, self.tickers, self.real_holdings,
+                self.test_holdings, self.divide_for, self.test_account.get_acc_data()]
 
     # 프로젝트가 실제 매매에 사용 중, 현재 테스트중이므로 비활성화
     def project_release(self):

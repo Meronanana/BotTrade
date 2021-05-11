@@ -1,5 +1,6 @@
 import sys
 import time
+import pickle
 from pandas import DataFrame
 from PyQt5 import uic
 from PyQt5.QtWidgets import *
@@ -9,6 +10,31 @@ from btalgorithm import *
 import devtools
 
 main_ui = uic.loadUiType("main.ui")[0]
+
+
+def load_data():
+    data = {}
+    try:
+        with open('projectFiles.pickle', 'rb') as file:
+            serialized = pickle.load(file)[0]
+            for line in serialized:
+                # [title, algs, tickers, r_hold, t_hold, div, test_acc]
+                data[line[0]] = Project(title=line[0], algs=line[1], tickers=line[2], r_hold=line[3]
+                                        , t_hold=line[4], div=line[5], test_acc=TestAccount(line[6][0], line[6][1]))
+            return data
+    except(FileNotFoundError, EOFError):
+        pass
+
+
+def write_data(data: dict):
+    # 정보들 파이썬 기본 클래스로 직렬화
+    serialized = []
+    for title in data.keys():
+        # [title, algs, r_hold, t_hold, div, test_acc]
+        serialized.append([data[title].get_project_data()])
+
+    with open('projectFiles.pickle', 'wb') as file:
+        pickle.dump(serialized, file)
 
 
 class AddProject(QDialog):
@@ -256,21 +282,29 @@ class MainWindow(QMainWindow, main_ui):
             window = ProjectDetail(self, self.project)
             window.exec_()
 
-    def __init__(self):
+    def __init__(self, projects: dict):
         super().__init__()
         self.setupUi(self)
         self.setWindowIcon(QIcon("stock_icon.png"))
 
+        # 알고리즘과 프로젝트들 초기화
         self.add_algorithms()
+        if projects is None:
+            pass
+        else:
+            for title in projects.keys():
+                project = projects[title]
+                self.create_project_in_main(project)
 
         self.log_pushButton.clicked.connect(self.trade_log)
         self.add_project_pushButton.clicked.connect(self.add_project)
         self.delete_project_pushButton.clicked.connect(self.delete_project)
         self.ram_usage_pushButton.clicked.connect(devtools.memory_usage)
 
+    # 알고리즘들을 다이얼로그에 표시
     def add_algorithms(self):
-        # QListWidget에 Item 추가하는 법
         for alg in Algorithm.algs:
+            # QListWidget에 Item 추가하는 법
             item = QListWidgetItem(self.algorithm_listWidget)
             widget = MainWindow.AlgInMain(alg)
             item.setSizeHint(QSize(0, 60))
@@ -278,23 +312,24 @@ class MainWindow(QMainWindow, main_ui):
             self.algorithm_listWidget.addItem(item)
             MainWindow.algs[widget.title] = alg()
 
+    # Dialog에 project 나타내는 Widget을 생성
+    def create_project_in_main(self, project):
+        item = QListWidgetItem(self.projects_listWidget)
+        widget = MainWindow.ProjectInMain(project)
+        item.setSizeHint(QSize(0, 70))
+
+        self.projects_listWidget.setItemWidget(item, widget)
+        self.projects_listWidget.addItem(item)
+
+        # 같은 title의 프로젝트 두개 이상 생성하면 에러뜬다
+        MainWindow.pjs[widget.title] = project
+
     @pyqtSlot()
     def add_project(self):
         window = AddProject(self)
         window.exec_()
         if window.accepted:
-            # 프로젝트 생성해야 함
-            item = QListWidgetItem(self.projects_listWidget)
-            # items = MainWindow.ProjectLWI(item)
-            pj = Project(str(window.title), window.algorithms, window.divide_for)
-            widget = MainWindow.ProjectInMain(pj)
-            item.setSizeHint(QSize(0, 70))
-
-            self.projects_listWidget.setItemWidget(item, widget)
-            self.projects_listWidget.addItem(item)
-
-            # 같은 title의 프로젝트 두개 이상 생성하면 에러뜬다
-            MainWindow.pjs[widget.title] = pj
+            self.create_project_in_main(str(window.title), window.algorithms, window.divide_for)
 
     @pyqtSlot()
     def trade_log(self):
@@ -311,8 +346,11 @@ class MainWindow(QMainWindow, main_ui):
 if __name__ == "__main__":
     key = Account()  # 암호 키값 초기화
     Algorithm()      # 알고리즘 리스트 초기화
+    projects = load_data()      # 저장된 프로젝트들 불러오기
 
     app = QApplication(sys.argv)
-    myWindow = MainWindow()
+    myWindow = MainWindow(projects)
     myWindow.show()
     app.exec_()
+
+    write_data(myWindow.pjs)

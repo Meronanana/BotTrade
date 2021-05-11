@@ -340,11 +340,11 @@ class LowValueAlg(Algorithm):
 
         return False
 
-    # 이익 실현: +5%, 손절매: -3%
+    # 이익 실현: +15%, 손절매: -10%
     def sell_algorithm(self, data, order, status):
         now_price = data['close'][-1]
         avg_buy_price = order['avg_buy_price']
-        if avg_buy_price * 0.97 < now_price < avg_buy_price * 1.05:
+        if avg_buy_price * 0.9 < now_price < avg_buy_price * 1.15:
             return False
         else:
             return True

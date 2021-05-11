@@ -30,6 +30,7 @@ class Algorithm:
         return False
 
     # 각자 다른 시간 포맷을 datetime형으로 반환
+    @staticmethod
     def to_datetime(self, time: str, status: str):
         temp: datetime
         if status == 'Release':
@@ -50,7 +51,7 @@ class TestChimpanzeeAlg(Algorithm):
     def __init__(self):
         super().__init__()
         self.datatype = 'day'
-    # https://zoom.us/j/92709391588?pwd=WjVsM1Rpelp2TnVaWjgybWN5VTBmZz09
+
     # 1% 확률로 매수
     def buy_algorithm(self, data):
         if random.random() * 100 < 1:

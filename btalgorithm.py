@@ -303,8 +303,8 @@ class LowValueAlg(Algorithm):
     def is_right_time(self):
         # 지정된 시간에만 매매
         now = datetime.now()
-        buy_start_time = datetime(now.year, now.month, now.day, 11, 48, 0)
-        buy_end_time = datetime(now.year, now.month, now.day, 11, 52, 30)
+        buy_start_time = datetime(now.year, now.month, now.day, 8, 50, 0)
+        buy_end_time = datetime(now.year, now.month, now.day, 8, 59, 30)
         if buy_start_time < now < buy_end_time:
             return True
         else:

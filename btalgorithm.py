@@ -50,7 +50,7 @@ class TestChimpanzeeAlg(Algorithm):
     def __init__(self):
         super().__init__()
         self.datatype = 'day'
-
+    # https://zoom.us/j/92709391588?pwd=WjVsM1Rpelp2TnVaWjgybWN5VTBmZz09
     # 1% 확률로 매수
     def buy_algorithm(self, data):
         if random.random() * 100 < 1:

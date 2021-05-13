@@ -2,6 +2,7 @@ import pyupbit as pu
 from pandas import DataFrame
 from PyQt5.QtCore import *
 from bttestaccount import *
+from btradar import *
 from datetime import datetime
 import asyncio
 
@@ -63,7 +64,8 @@ class Project:
 
     # 프로젝트 불러오기로 생성: [title, algs, r_hold, t_hold, div, test_acc]
     def __init__(self, title: str = "Untitled", algs: list = [], tickers: dict = None,
-                 r_hold: list = None, t_hold: list = None, div: int = 1, test_acc: TestAccount = None):
+                 r_hold: list = None, t_hold: list = None, div: int = 1, test_acc: TestAccount = None,
+                 radar: Radar = None):
         self.title = title  # 프로젝트 제목
         self.algorithms = algs  # 알고리즘 객체로 이루어진 리스트
         self.tickers = pu.get_tickers(fiat="KRW") if tickers is None else tickers
@@ -77,13 +79,15 @@ class Project:
 
         self.test_account = TestAccount() if test_acc is None else test_acc
 
+        self.radar = Radar(comp=[RadarComponent()]) if radar is None else radar
+
     def __del__(self):
         self.project_off()
 
     def get_project_data(self):
         # [title, algs, tickers, r_hold, t_hold, div, test_acc]
         return [self.title, self.algorithms, self.tickers, self.real_holdings,
-                self.test_holdings, self.divide_for, self.test_account.get_acc_data()]
+                self.test_holdings, self.divide_for, self.test_account.get_acc_data(), self.radar.title]
 
     # 프로젝트가 실제 매매에 사용 중, 현재 테스트중이므로 비활성화
     def project_release(self):
@@ -110,16 +114,6 @@ class Project:
             self.sell_thread.terminate()
 
             print(self.status)
-
-    async def refresh_project(self):
-        while True:
-            # await asyncio.sleep(3600)
-            self.buy_thread.terminate()
-            self.sell_thread.terminate()
-            await asyncio.sleep(5)
-            self.buy_thread.start()
-            self.sell_thread.start()
-            await asyncio.sleep(3600)
 
 
 # 티커 관련 알고리즘 수정 필요, 매수량 및 매수가 관련 알고리즘 수정 필요.
@@ -159,6 +153,8 @@ class BuyThread(QThread):
                         self.order_release(ticker, data)
                     elif self.project.status == 'Testing':
                         self.order_testing(ticker, data)
+
+                # 초당 4*alg 개의 정보 이용
                 self.msleep(250 * BuyThread.runner_amount)
 
     # 프로젝트가 Release 상태 시 실제 주문
@@ -244,6 +240,8 @@ class SellThread(QThread):
                         self.order_release(order, data)
                     elif self.project.status == 'Testing':
                         self.order_testing(order, data)
+
+                # 초당 2*alg 개의 정보 이용
                 self.msleep(500 * SellThread.runner_amount)
 
     # 프로젝트가 Release 상태 시 실제 주문, 일단 풀주문으로 설정

@@ -83,7 +83,7 @@ class BreakVolatilityAlg(Algorithm):
             return False
 
         df = data
-        yd = df.iloc[-2]  # yesterday data
+        yd = df.iloc[-2]  # yesterday project_data
 
         today_open = df.iloc[-1]['open']
         yd_var = yd['high'] - yd['low']

@@ -60,7 +60,6 @@ class Order:
 class Project:
     # Order(현재시각, 프로젝트 객체, ticker, status, order(upbit or test))
     order_log = []
-    runner_amount = 0
 
     # 프로젝트 불러오기로 생성: [title, algs, r_hold, t_hold, div, test_acc]
     def __init__(self, title: str = "Untitled", algs: list = [], tickers: dict = None,
@@ -89,27 +88,18 @@ class Project:
     # 프로젝트가 실제 매매에 사용 중, 현재 테스트중이므로 비활성화
     def project_release(self):
         if self.status != 'Release':
-            self.buy_thread.terminate()
-            self.sell_thread.terminate()
-
             self.status = 'Release'
             # self.buy_thread.start()
             # self.sell_thread.start()
             # print('started?')
 
-            Project.runner_amount += 1
-
     # 프로젝트가 실제 데이터를 활용한 테스트 중
     def project_testing(self):
         if self.status != 'Testing':
-            self.buy_thread.terminate()
-            self.sell_thread.terminate()
-
             self.status = 'Testing'
             self.buy_thread.start()
             self.sell_thread.start()
 
-            Project.runner_amount += 1
             print(self.status)
 
     # 프로젝트가 현재 비활성화
@@ -118,9 +108,7 @@ class Project:
             self.status = 'Off'
             self.buy_thread.terminate()
             self.sell_thread.terminate()
-            self.test_account.get_test_account()
 
-            Project.runner_amount -= 1
             print(self.status)
 
     async def refresh_project(self):
@@ -136,9 +124,19 @@ class Project:
 
 # 티커 관련 알고리즘 수정 필요, 매수량 및 매수가 관련 알고리즘 수정 필요.
 class BuyThread(QThread):
+    runner_amount = 0
+
     def __init__(self, pj: Project):
         super().__init__()
         self.project = pj
+
+    def start(self, priority=None):
+        BuyThread.runner_amount += 1
+        super().start()
+
+    def terminate(self):
+        BuyThread.runner_amount -= 1
+        super().terminate()
 
     def run(self):
         while True:
@@ -161,7 +159,7 @@ class BuyThread(QThread):
                         self.order_release(ticker, data)
                     elif self.project.status == 'Testing':
                         self.order_testing(ticker, data)
-                self.msleep(250 * Project.runner_amount)
+                self.msleep(250 * BuyThread.runner_amount)
 
     # 프로젝트가 Release 상태 시 실제 주문
     def order_release(self, ticker, data):
@@ -205,9 +203,19 @@ class BuyThread(QThread):
 
 # 티커 관련 알고리즘 수정 필요, 매도량 및 매도가 관련 알고리즘 수정 필요.
 class SellThread(QThread):
+    runner_amount = 0
+
     def __init__(self, pj: Project):
         super().__init__()
         self.project = pj
+
+    def start(self, priority=None):
+        SellThread.runner_amount += 1
+        super().start()
+
+    def terminate(self):
+        SellThread.runner_amount -= 1
+        super().terminate()
 
     # 주문단위로 판단하게 수정.
     def run(self):
@@ -236,7 +244,7 @@ class SellThread(QThread):
                         self.order_release(order, data)
                     elif self.project.status == 'Testing':
                         self.order_testing(order, data)
-                self.msleep(1000 * Project.runner_amount)
+                self.msleep(500 * SellThread.runner_amount)
 
     # 프로젝트가 Release 상태 시 실제 주문, 일단 풀주문으로 설정
     def order_release(self, order, data):

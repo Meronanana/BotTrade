@@ -359,3 +359,7 @@ class LowValueAlg(Algorithm):
         else:
             return True
 
+
+# 스캘핑 매매
+class ScalpingAlg(Algorithm):
+    pass

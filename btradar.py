@@ -9,12 +9,16 @@ from PyQt5.QtCore import *
 
 
 class Radar:
-    def __init__(self, title: str = None, comp: list = None):
+    def __init__(self, title: str = None, comps: list = None):
         self.title = title
-        self.components = [] if comp is None else comp
+        self.components = [] if comps is None else comps
 
+    # [title, comp_data[get_comp_data[class_name, tickers]]]
     def get_radar_data(self):
-        return [self.title, self.components]
+        comp_data = []
+        for comp in self.components:
+            comp_data.append(comp.get_comp_data())
+        return [self.title, comp_data]
 
     # RadarComponent 들이 반환하는 티커 중 중복하는 것만 반환
     def get_tickers(self):
@@ -35,24 +39,47 @@ class Radar:
 
 # 티커를 KRW 시장 전체로 가지는 기본적인 레이더
 class RadarComponent(QThread):
-    description: str
-    comps: list
+    description = "Default"
+    comps: dict
     activated = False
 
     krw_tickers = pu.get_tickers("KRW")
     runner_amount = 0
 
-    def __init__(self):
+    def __init__(self, tickers: list = None):
+        super().__init__()
         # 컴포넌트 리스트 초기화
         if not RadarComponent.activated:
-            RadarComponent.comps = []
-            RadarComponent.comps.extend([FindRapidStarComp])
+            RadarComponent.comps = {'FindRapidStarComp': FindRapidStarComp}
             RadarComponent.activated = True
 
-        self.tickers = RadarComponent.krw_tickers
+        self.tickers = RadarComponent.krw_tickers if tickers is None else tickers
+
+    # [class_name, tickers]
+    def get_comp_data(self):
+        return [self.__class__.__name__, self.tickers]
+
+    def set_tickers(self, tickers: list):
+        self.tickers = tickers
 
     def is_remarkable(self, ticker):
         return True
+
+    @staticmethod
+    def descriptions():
+        result = []
+        for comp in RadarComponent.comps.values():
+            result.append(comp.description)
+
+        return result
+
+    @staticmethod
+    def find_radar_component(description: str):
+        for comp in RadarComponent.comps.values():
+            if comp.description == description:
+                return comp
+
+        return None
 
     def start(self, priority=None):
         RadarComponent.runner_amount += 1

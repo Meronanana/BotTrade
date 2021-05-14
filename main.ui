@@ -203,100 +203,6 @@
      <attribute name="title">
       <string>레이더</string>
      </attribute>
-     <widget class="QListWidget" name="radars_listWidget">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>50</y>
-        <width>751</width>
-        <height>471</height>
-       </rect>
-      </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="baseSize">
-       <size>
-        <width>5</width>
-        <height>5</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <family>티머니 둥근바람 Regular</family>
-        <pointsize>12</pointsize>
-       </font>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::Box</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Plain</enum>
-      </property>
-      <property name="lineWidth">
-       <number>2</number>
-      </property>
-      <property name="midLineWidth">
-       <number>1</number>
-      </property>
-      <property name="autoScrollMargin">
-       <number>32</number>
-      </property>
-      <property name="dragEnabled">
-       <bool>true</bool>
-      </property>
-      <property name="dragDropMode">
-       <enum>QAbstractItemView::NoDragDrop</enum>
-      </property>
-      <property name="movement">
-       <enum>QListView::Static</enum>
-      </property>
-      <property name="isWrapping" stdset="0">
-       <bool>false</bool>
-      </property>
-      <property name="resizeMode">
-       <enum>QListView::Fixed</enum>
-      </property>
-      <property name="layoutMode">
-       <enum>QListView::SinglePass</enum>
-      </property>
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <property name="gridSize">
-       <size>
-        <width>0</width>
-        <height>60</height>
-       </size>
-      </property>
-      <property name="viewMode">
-       <enum>QListView::ListMode</enum>
-      </property>
-      <property name="modelColumn">
-       <number>0</number>
-      </property>
-      <property name="uniformItemSizes">
-       <bool>false</bool>
-      </property>
-      <property name="batchSize">
-       <number>200</number>
-      </property>
-      <property name="wordWrap">
-       <bool>false</bool>
-      </property>
-      <property name="selectionRectVisible">
-       <bool>false</bool>
-      </property>
-      <property name="currentRow">
-       <number>-1</number>
-      </property>
-      <property name="sortingEnabled">
-       <bool>false</bool>
-      </property>
-     </widget>
      <widget class="QWidget" name="horizontalLayoutWidget_3">
       <property name="geometry">
        <rect>
@@ -356,6 +262,34 @@
         </widget>
        </item>
       </layout>
+     </widget>
+     <widget class="QListWidget" name="radars_listWidget">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>50</y>
+        <width>751</width>
+        <height>471</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>티머니 둥근바람 Regular</family>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
+      </property>
+      <property name="lineWidth">
+       <number>2</number>
+      </property>
+      <property name="midLineWidth">
+       <number>3</number>
+      </property>
      </widget>
     </widget>
     <widget class="QWidget" name="project_tab">

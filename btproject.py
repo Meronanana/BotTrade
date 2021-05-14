@@ -79,7 +79,7 @@ class Project:
 
         self.test_account = TestAccount() if test_acc is None else test_acc
 
-        self.radar = Radar(comp=[RadarComponent()]) if radar is None else radar
+        self.radar = Radar(comps=[RadarComponent()]) if radar is None else radar
 
     def __del__(self):
         self.project_off()
@@ -176,7 +176,7 @@ class BuyThread(QThread):
     def order_testing(self, ticker, data):
         # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
         try:
-            order_balance = self.project.test_account.balance / (self.project.divide_for-len(self.project.test_account.wallet.keys())) / 1.0005
+            order_balance = self.project.test_account.balance / (self.project.divide_for - len(self.project.test_account.wallet.descriptions())) / 1.0005
         except:
             order_balance = 0
 

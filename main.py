@@ -21,8 +21,15 @@ def load_data():
         with open('radarFiles.pickle', 'rb') as file:
             serialized = pickle.load(file)
             for line in serialized:
-                # [title, comps]
-                radar_data[line[0]] = Radar(title=line[0], comp=line[1])
+                # [title, comp_data[get_comp_data[class_name, tickers]]]
+                comps = []
+                for i in range(len(line[1])):
+                    comp_class = RadarComponent.comps[line[1][i][0]]
+                    comp = comp_class()
+                    comp.set_tickers(line[1][i][1])
+                    comps.append(comp)
+
+                radar_data[line[0]] = Radar(title=line[0], comps=comps)
     except(FileNotFoundError, EOFError):
         pass
 
@@ -51,15 +58,17 @@ def load_data():
 # 레이더 data는 프로젝트 data처럼 받아올 것이다
 def write_data(radar_data: dict, project_data: dict):
     # 정보들 파이썬 기본 클래스로 직렬화
+    # Radar writing
     serialized = []
     for title in radar_data.keys():
-        # [title, comps]
+        # [title, comp_data[get_comp_data[class_name, tickers]]]
         add = radar_data[title].get_radar_data()
         serialized.append(add)
 
     with open('radarFiles.pickle', 'wb') as file:
         pickle.dump(serialized, file)
 
+    # Project writing
     serialized = []
     for title in project_data.keys():
         # [title, algs, r_hold, t_hold, div, test_acc.get_acc_data, radar_title]
@@ -117,7 +126,7 @@ class AddRadar(QDialog):
         super().__init__(parent)
         ui = 'add_radar_in_main.ui'
         uic.loadUi(ui, self)
-        self.component_comboBox.addItems(MainWindow.rd_comps.keys())
+        self.component_comboBox.addItems(RadarComponent.descriptions())
 
         self.title = 'New_Radar'
         self.description = 'No description'
@@ -140,7 +149,9 @@ class AddRadar(QDialog):
     @pyqtSlot()
     def add_component(self):
         item = QListWidgetItem(self.component_listWidget)
-        self.comps.append(MainWindow.rd_comps[self.component_comboBox.currentText()])
+        comp = RadarComponent.find_radar_component(self.component_comboBox.currentText())
+        comp_instance = comp()
+        self.comps.append(comp_instance)
         widget = AddRadar.CompInRadar(self.comps[-1])
         item.setSizeHint(QSize(0, 50))
         self.component_listWidget.setItemWidget(item, widget)
@@ -319,7 +330,7 @@ class ProjectDetail(QDialog):
 
         # 보유코인-보유수량-매수평균가-매수금액-평가금액-평가손익
         data = [['KRW', '-', '-', '-', str(test_acc.balance), '-']]
-        for currency in test_acc.wallet.keys():
+        for currency in test_acc.wallet:
             amount = test_acc.wallet[currency]['balance']
             buy_price = test_acc.wallet[currency]['avg_buy_price']
             now_price = pu.get_current_price(currency)
@@ -343,7 +354,6 @@ class MainWindow(QMainWindow, main_ui):
     algs = {}
     pjs = {}
     rds = {}
-    rd_comps = {}
 
     class AlgInMain(QWidget):
         def __init__(self, alg: Algorithm):
@@ -377,7 +387,8 @@ class MainWindow(QMainWindow, main_ui):
             self.radar_title_label.setText(self.title)
             t = ''
             for i in rd.components:
-                t = t + i.description + ', '
+                print(i)
+                t = t + i.__class__.description + ', '
             t = t.rstrip(', ')
             self.components_label.setText(t)
 
@@ -440,7 +451,6 @@ class MainWindow(QMainWindow, main_ui):
 
         # 알고리즘, 레이더, 프로젝트들 초기화
         self.add_algorithms()
-        self.add_radar_comps()
 
         if radars is None:
             pass
@@ -459,6 +469,7 @@ class MainWindow(QMainWindow, main_ui):
         # 버튼들 시그널-슬롯 연결
         self.log_pushButton.clicked.connect(self.trade_log)
         self.add_radar_pushButton.clicked.connect(self.add_radar)
+        self.delete_radar_pushButton.clicked.connect(self.delete_radar)
         self.add_project_pushButton.clicked.connect(self.add_project)
         self.delete_project_pushButton.clicked.connect(self.delete_project)
         self.ram_usage_pushButton.clicked.connect(devtools.memory_usage)
@@ -472,12 +483,7 @@ class MainWindow(QMainWindow, main_ui):
             item.setSizeHint(QSize(0, 60))
             self.algorithm_listWidget.setItemWidget(item, widget)
             self.algorithm_listWidget.addItem(item)
-            MainWindow.algs[widget.title] = alg
-
-    # 레이더 컴포넌트 목록에 추가
-    def add_radar_comps(self):
-        for comp in RadarComponent.comps:
-            MainWindow.rd_comps[comp.description] = comp
+            MainWindow.algs[widget.title] = alg()
 
     def create_radar_in_main(self, radar):
         item = QListWidgetItem(self.radars_listWidget)
@@ -502,13 +508,27 @@ class MainWindow(QMainWindow, main_ui):
         # 같은 title의 프로젝트 두개 이상 생성하면 에러뜬다
         MainWindow.pjs[widget.title] = project
 
+    # Slots for Radar
     @pyqtSlot()
     def add_radar(self):
         window = AddRadar(self)
         window.exec_()
         if window.accepted:
-            rd = Radar(title=str(window.title), comp=window.comps)
+            rd = Radar(title=str(window.title), comps=window.comps)
             self.create_radar_in_main(rd)
+
+    @pyqtSlot()
+    def delete_radar(self):
+        item = self.radars_listWidget.currentItem()
+        radar = MainWindow.rds[self.radars_listWidget.itemWidget(item).title]
+        radar.radar_off()
+        del MainWindow.rds[self.radars_listWidget.itemWidget(item).title]
+        self.radars_listWidget.takeItem(self.radars_listWidget.row(item))
+
+    # Slots for Project
+    @pyqtSlot()
+    def trade_log(self):
+        window = TradeLog(self)
 
     @pyqtSlot()
     def add_project(self):
@@ -517,11 +537,6 @@ class MainWindow(QMainWindow, main_ui):
         if window.accepted:
             pj = Project(title=str(window.title), algs=window.algorithms, div=window.divide_for)
             self.create_project_in_main(pj)
-
-    @pyqtSlot()
-    def trade_log(self):
-        window = TradeLog(self)
-        # 로그 창 관련 슬롯 만들어야 함
 
     @pyqtSlot()
     def delete_project(self):
@@ -535,6 +550,7 @@ class MainWindow(QMainWindow, main_ui):
 if __name__ == "__main__":
     key = Account()  # 암호 키값 초기화
     Algorithm()      # 알고리즘 리스트 초기화
+    RadarComponent()  # 레이더 컴포넌트 딕셔너리 초기화
     data = load_data()
     radars = data[0]        # 저장된 레이더들 불러오기
     projects = data[1]      # 저장된 프로젝트들 불러오기

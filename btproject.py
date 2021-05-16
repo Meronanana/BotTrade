@@ -85,7 +85,7 @@ class Project:
         self.project_off()
 
     def get_project_data(self):
-        # [title, algs, tickers, r_hold, t_hold, div, test_acc]
+        # [title, algs, tickers, r_hold, t_hold, div, test_acc, radar.title]
         return [self.title, self.algorithms, self.tickers, self.real_holdings,
                 self.test_holdings, self.divide_for, self.test_account.get_acc_data(), self.radar.title]
 
@@ -103,6 +103,7 @@ class Project:
             self.status = 'Testing'
             self.buy_thread.start()
             self.sell_thread.start()
+            self.radar.radar_on()
 
             print(self.status)
 
@@ -112,6 +113,7 @@ class Project:
             self.status = 'Off'
             self.buy_thread.terminate()
             self.sell_thread.terminate()
+            self.radar.radar_off()
 
             print(self.status)
 
@@ -134,6 +136,13 @@ class BuyThread(QThread):
 
     def run(self):
         while True:
+            self.project.tickers = self.project.radar.get_tickers()
+            if self.project.tickers is None:
+                print('sleep 10 sec')
+                self.sleep(10)
+                print('Wake Up!')
+                continue
+
             for ticker in self.project.tickers:
                 data: tuple
 
@@ -169,14 +178,13 @@ class BuyThread(QThread):
         order = Account.my_account.buy_limit_order(ticker, price, amount)
 
         self.project.real_holdings.append(order)
-        self.project.tickers.remove(ticker)
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), order))
 
     def order_testing(self, ticker, data):
         # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
         try:
-            order_balance = self.project.test_account.balance / (self.project.divide_for - len(self.project.test_account.wallet.descriptions())) / 1.0005
+            order_balance = self.project.test_account.balance / (self.project.divide_for - len(self.project.test_account.wallet)) / 1.0005
         except:
             order_balance = 0
 
@@ -191,7 +199,6 @@ class BuyThread(QThread):
             , 'status': "Testing", 'side': 'bid'
         }
         self.project.test_holdings.append(test_order)
-        self.project.tickers.remove(ticker)
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), test_order))
         self.project.test_account.buy_order(test_order)
@@ -217,10 +224,11 @@ class SellThread(QThread):
     def run(self):
         while True:
             # 일단 테스트 주문을 기준으로 만들었다. 나중에 실제와도 호환되게 수정할것. 174line
-            if len(self.project.test_holdings) == 0:
+            check = list(self.project.test_account.wallet.values())
+            if len(check) == 0:
                 self.sleep(30)
                 continue
-            for order in self.project.test_holdings:
+            for order in check:
                 ticker = order['currency']
 
                 data: tuple
@@ -228,7 +236,7 @@ class SellThread(QThread):
                 for al in self.project.algorithms:
                     try:
                         data = pu.get_ohlcv(ticker=ticker, interval=al.datatype, count=30)  # data의 규격은 일단 ohclv로 함, 30개만 가져옴.
-                    except:
+                    except Exception:
                         print("요청 초과!")
                         signal = False
                         break
@@ -252,7 +260,6 @@ class SellThread(QThread):
         order = Account.my_account.sell_limit_order(ticker, price, amount)
 
         self.project.real_holdings.remove(order)
-        self.project.tickers.append(ticker)
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), order))
 
@@ -267,7 +274,6 @@ class SellThread(QThread):
         }
 
         self.project.test_holdings.remove(order)
-        self.project.tickers.append(ticker)
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), test_order))
         self.project.test_account.sell_order(test_order)

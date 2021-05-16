@@ -48,8 +48,8 @@ def load_data():
                     project_data[line[0]] = \
                         Project(title=line[0], algs=line[1], tickers=line[2], r_hold=line[3],
                                 t_hold=line[4], div=line[5], test_acc=TestAccount(line[6][0], line[6][1]),
-                                )  # radar=radar_data[line[7]]
-    except(FileNotFoundError, EOFError, KeyError):
+                                radar=radar_data[line[7]])
+    except(FileNotFoundError, EOFError):
         pass
 
     return [radar_data, project_data]
@@ -71,7 +71,7 @@ def write_data(radar_data: dict, project_data: dict):
     # Project writing
     serialized = []
     for title in project_data.keys():
-        # [title, algs, r_hold, t_hold, div, test_acc.get_acc_data, radar_title]
+        # [title, algs, r_hold, t_hold, div, test_acc.get_acc_data, radar.title]
         add = project_data[title].get_project_data()
         serialized.append(add)
 
@@ -177,13 +177,24 @@ class AddRadar(QDialog):
 class AddProject(QDialog):
     class AlgInProject(QWidget):
         def __init__(self, alg: Algorithm):
-            super(AddProject.AlgInProject, self).__init__()
+            super().__init__()
             ui = 'algorithms_in_project.ui'
             uic.loadUi(ui, self)
 
             self.alg = alg
 
             self.algorithm_title_label.setText(self.alg.title)
+
+    class RadarInProject(QWidget):
+        def __init__(self, radar: Radar):
+            super().__init__()
+            ui = 'radar_in_project.ui'
+            uic.loadUi(ui, self)
+
+            self.radar = radar
+
+            self.radar_title_label.setText(self.radar.title)
+            print(radar.title)
 
     class SetProjectDetail(QDialog):
         def __init__(self, parent, detail: tuple):
@@ -225,14 +236,17 @@ class AddProject(QDialog):
         ui = 'add_algorithms_in_project.ui'
         uic.loadUi(ui, self)
         self.algorithm_comboBox.addItems(MainWindow.algs.keys())
+        self.radar_comboBox.addItems(MainWindow.rds.keys())
 
         self.title = 'New_Project'
         self.description = 'No description'
         self.algorithms = []
+        self.radar = MainWindow.rds[self.radar_comboBox.currentText()]
         self.divide_for = '1'
 
+        self.algorithm_comboBox.activated.connect(self.add_algorithm)
+        self.radar_comboBox.activated.connect(self.change_radar)
         self.detail_pushButton.clicked.connect(self.set_detail)
-        self.add_alg_pushButton.clicked.connect(self.add_algorithm)
         self.del_alg_pushButton.clicked.connect(self.del_algorithm)
         self.accept_pushButton.clicked.connect(self.accept)
         self.reject_pushButton.clicked.connect(self.reject)
@@ -256,6 +270,10 @@ class AddProject(QDialog):
         item.setSizeHint(QSize(0, 50))
         self.algorithm_listWidget.setItemWidget(item, widget)
         self.algorithm_listWidget.addItem(item)
+
+    @pyqtSlot()
+    def change_radar(self):
+        self.radar = MainWindow.rds[self.radar_comboBox.currentText()]
 
     @pyqtSlot()
     def del_algorithm(self):
@@ -337,7 +355,7 @@ class ProjectDetail(QDialog):
             data.append([
                 currency
                 , str(round(amount, 8))
-                , str(buy_price)
+                , str(round(buy_price, 2))
                 , str(int(amount*buy_price))
                 , str(int(amount*now_price))
                 , str(round((amount*now_price-amount*buy_price)/(amount*buy_price)*100, 2))+'%'
@@ -410,11 +428,12 @@ class MainWindow(QMainWindow, main_ui):
             self.title = pj.title
 
             self.project_title_label.setText(self.title)
-            t = ''
+            t = ''      # algorithms_label text 설정
             for i in pj.algorithms:
                 t = t + i.title + ', '
             t = t.rstrip(', ')
-            self.components_label.setText(t)
+            self.algorithms_label.setText(t)
+            self.radar_label.setText(pj.radar.title)
 
             # 버튼 시그널-슬롯 연결
             self.apply_pushButton.clicked.connect(self.set_project_status)
@@ -500,7 +519,7 @@ class MainWindow(QMainWindow, main_ui):
     def create_project_in_main(self, project):
         item = QListWidgetItem(self.projects_listWidget)
         widget = MainWindow.ProjectInMain(project)
-        item.setSizeHint(QSize(0, 70))
+        item.setSizeHint(QSize(0, 90))
 
         self.projects_listWidget.setItemWidget(item, widget)
         self.projects_listWidget.addItem(item)
@@ -535,7 +554,7 @@ class MainWindow(QMainWindow, main_ui):
         window = AddProject(self)
         window.exec_()
         if window.accepted:
-            pj = Project(title=str(window.title), algs=window.algorithms, div=window.divide_for)
+            pj = Project(title=str(window.title), algs=window.algorithms, div=window.divide_for, radar=window.radar)
             self.create_project_in_main(pj)
 
     @pyqtSlot()

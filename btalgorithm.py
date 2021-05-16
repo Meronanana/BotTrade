@@ -52,16 +52,16 @@ class TestChimpanzeeAlg(Algorithm):
         super().__init__()
         self.datatype = 'day'
 
-    # 1% 확률로 매수
+    # 5% 확률로 매수
     def buy_algorithm(self, data):
-        if random.random() * 100 < 1:
+        if random.random() * 100 < 5:
             return True
         else:
             return False
 
-    # 0.05% 확률로 매도
+    # 1% 확률로 매도
     def sell_algorithm(self, data, order, status):
-        if random.random() * 100 < 0.05:
+        if random.random() * 100 < 1:
             return True
         else:
             return False

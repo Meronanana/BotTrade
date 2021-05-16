@@ -24,15 +24,21 @@ class Radar:
     def get_tickers(self):
         result = pu.get_tickers(fiat="KRW")
         for comp in self.components:
+            if len(comp.tickers) == 0:
+                return None
+
             result = list(set(result).intersection(comp.tickers))
 
+        print(result)
         return result
 
     def radar_on(self):
+        print("Radar ON")
         for comp in self.components:
             comp.start()
 
     def radar_off(self):
+        print("Radar OFF")
         for comp in self.components:
             comp.terminate()
 
@@ -93,11 +99,16 @@ class RadarComponent(QThread):
         while True:
             for ticker in RadarComponent.krw_tickers:
                 if self.is_remarkable(ticker):
+                    try:
+                        self.tickers.remove(ticker)
+                    except ValueError:
+                        pass
                     self.tickers.append(ticker)
                 else:
-                    for out in self.tickers:
-                        if out == ticker:
-                            self.tickers.remove(out)
+                    try:
+                        self.tickers.remove(ticker)
+                    except ValueError:
+                        pass
 
                 # 초당 4개의 정보 이용
                 self.msleep(250 * RadarComponent.runner_amount)
@@ -110,13 +121,13 @@ class FindRapidStarComp(RadarComponent):
     def __init__(self):
         super().__init__()
 
-    # 최근 20분간 5% 이상 상승한 분봉이 있다면 True
+    # 최근 20분간 2% 이상 상승한 분봉이 있다면 True
     def is_remarkable(self, ticker):
         data = pu.get_ohlcv(ticker=ticker, interval="minute1", count=20)
         for date, ohclv in data.iterrows():
             # 분봉 한개 추출
             diff = (ohclv['close'] - ohclv['open']) / ohclv['open'] * 100
-            if diff > 5:
+            if diff > 1:
                 return True
 
         return False

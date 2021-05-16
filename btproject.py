@@ -103,17 +103,6 @@ class Project:
             self.status = 'Testing'
             self.buy_thread.start()
             self.sell_thread.start()
-            self.radar.radar_on()
-
-            print(self.status)
-
-    # 프로젝트에서 레이더만 활성화
-    def project_radar_only(self):
-        if self.status != 'Radar Only':
-            self.status = 'Radar Only'
-            self.buy_thread.terminate()
-            self.sell_thread.terminate()
-            self.radar.radar_on()
 
             print(self.status)
 
@@ -123,7 +112,6 @@ class Project:
             self.status = 'Off'
             self.buy_thread.terminate()
             self.sell_thread.terminate()
-            self.radar.radar_off()
 
             print(self.status)
 

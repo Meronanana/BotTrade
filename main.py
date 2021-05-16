@@ -132,8 +132,8 @@ class AddRadar(QDialog):
         self.description = 'No description'
         self.comps = []
 
+        self.component_comboBox.activated.connect(self.add_component)
         self.detail_pushButton.clicked.connect(self.set_detail)
-        self.add_comp_pushButton.clicked.connect(self.add_component)
         self.del_comp_pushButton.clicked.connect(self.del_component)
         self.accept_pushButton.clicked.connect(self.accept)
         self.reject_pushButton.clicked.connect(self.reject)
@@ -411,7 +411,18 @@ class MainWindow(QMainWindow, main_ui):
             self.components_label.setText(t)
 
             # 버튼 시그널-슬롯 연결
+            self.apply_pushButton.clicked.connect(self.set_radar_status)
             self.detail_pushButton.clicked.connect(self.show_detail)
+
+        @pyqtSlot()
+        def set_radar_status(self):
+            t = self.status_choose_comboBox.currentText()
+            if t == 'On':
+                self.status_label.setText('O')
+                self.radar.radar_on()
+            elif t == 'Off':
+                self.status_label.setText('-')
+                self.radar.radar_off()
 
         @pyqtSlot()
         def show_detail(self):
@@ -449,9 +460,6 @@ class MainWindow(QMainWindow, main_ui):
             elif t == 'Testing':
                 self.status_label.setText('T')
                 self.project.project_testing()
-            elif t == 'Radar Only':
-                self.status_label.setText('A')
-                self.project.project_radar_only()
             elif t == 'Off':
                 self.status_label.setText('-')
                 self.project.project_off()

@@ -78,7 +78,7 @@
   <widget class="QLabel" name="status_label">
    <property name="geometry">
     <rect>
-     <x>470</x>
+     <x>480</x>
      <y>10</y>
      <width>16</width>
      <height>21</height>
@@ -110,9 +110,9 @@
   <widget class="QComboBox" name="status_choose_comboBox">
    <property name="geometry">
     <rect>
-     <x>490</x>
+     <x>500</x>
      <y>10</y>
-     <width>111</width>
+     <width>101</width>
      <height>22</height>
     </rect>
    </property>
@@ -123,17 +123,7 @@
    </item>
    <item>
     <property name="text">
-     <string>Release</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Testing</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Radar Only</string>
+     <string>On</string>
     </property>
    </item>
   </widget>

@@ -29,7 +29,6 @@ class Radar:
 
             result = list(set(result).intersection(comp.tickers))
 
-        print(result)
         return result
 
     def radar_on(self):
@@ -56,7 +55,7 @@ class RadarComponent(QThread):
         super().__init__()
         # 컴포넌트 리스트 초기화
         if not RadarComponent.activated:
-            RadarComponent.comps = {'Default': RadarComponent, 'FindRapidStarComp': FindRapidStarComp}
+            RadarComponent.comps = {'RadarComponent': RadarComponent, 'FindRapidStarComp': FindRapidStarComp}
             RadarComponent.activated = True
 
         self.tickers = RadarComponent.krw_tickers if tickers is None else tickers

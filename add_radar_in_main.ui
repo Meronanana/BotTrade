@@ -61,7 +61,7 @@
   <widget class="QPushButton" name="del_comp_pushButton">
    <property name="geometry">
     <rect>
-     <x>170</x>
+     <x>10</x>
      <y>40</y>
      <width>121</width>
      <height>23</height>
@@ -95,19 +95,6 @@
      <width>521</width>
      <height>22</height>
     </rect>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="add_comp_pushButton">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>40</y>
-     <width>151</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>레이더에 컴포넌트 추가</string>
    </property>
   </widget>
  </widget>

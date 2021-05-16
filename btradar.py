@@ -131,7 +131,7 @@ class FindRapidStarComp(RadarComponent):
         for date, ohclv in data.iterrows():
             # 분봉 한개 추출
             diff = (ohclv['close'] - ohclv['open']) / ohclv['open'] * 100
-            if diff > 1:
+            if diff > 2:
                 return True
 
         return False

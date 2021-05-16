@@ -171,8 +171,8 @@ class BuyThread(QThread):
                     elif self.project.status == 'Testing':
                         self.order_testing(ticker, data)
 
-                # 초당 4*alg 개의 정보 이용
-                self.msleep(250 * BuyThread.runner_amount)
+                # 초당 10/3*alg 개의 정보 이용
+                self.msleep(300 * BuyThread.runner_amount)
 
     # 프로젝트가 Release 상태 시 실제 주문
     def order_release(self, ticker, data):

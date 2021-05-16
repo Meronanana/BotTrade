@@ -533,6 +533,8 @@ class MainWindow(QMainWindow, main_ui):
     # Slots for Radar
     @pyqtSlot()
     def add_radar(self):
+        write_data(MainWindow.rds, MainWindow.pjs)
+
         window = AddRadar(self)
         window.exec_()
         if window.accepted:
@@ -541,6 +543,8 @@ class MainWindow(QMainWindow, main_ui):
 
     @pyqtSlot()
     def delete_radar(self):
+        write_data(MainWindow.rds, MainWindow.pjs)
+
         item = self.radars_listWidget.currentItem()
         radar = MainWindow.rds[self.radars_listWidget.itemWidget(item).title]
         radar.radar_off()
@@ -550,10 +554,14 @@ class MainWindow(QMainWindow, main_ui):
     # Slots for Project
     @pyqtSlot()
     def trade_log(self):
+        write_data(MainWindow.rds, MainWindow.pjs)
+
         window = TradeLog(self)
 
     @pyqtSlot()
     def add_project(self):
+        write_data(MainWindow.rds, MainWindow.pjs)
+
         window = AddProject(self)
         window.exec_()
         if window.accepted:
@@ -562,6 +570,8 @@ class MainWindow(QMainWindow, main_ui):
 
     @pyqtSlot()
     def delete_project(self):
+        write_data(MainWindow.rds, MainWindow.pjs)
+
         item = self.projects_listWidget.currentItem()
         project = MainWindow.pjs[self.projects_listWidget.itemWidget(item).title]
         project.project_off()

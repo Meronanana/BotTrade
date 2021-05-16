@@ -107,6 +107,14 @@ class Project:
 
             print(self.status)
 
+    # 프로젝트에서 레이더만 활성화
+    def project_radar_only(self):
+        if self.status != 'Radar Only':
+            self.status = 'Radar Only'
+            self.radar.radar_on()
+
+            print(self.status)
+
     # 프로젝트가 현재 비활성화
     def project_off(self):
         if self.status != 'Off':
@@ -198,7 +206,6 @@ class BuyThread(QThread):
             'currency': ticker, 'balance': amount, 'avg_buy_price': price, 'created_at': datetime.now()
             , 'status': "Testing", 'side': 'bid'
         }
-        self.project.test_holdings.append(test_order)
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), test_order))
         self.project.test_account.buy_order(test_order)
@@ -272,8 +279,6 @@ class SellThread(QThread):
             'currency': ticker, 'balance': amount, 'avg_sell_price': price, 'created_at': datetime.now()
             , 'status': 'Testing', 'side': 'ask'
         }
-
-        self.project.test_holdings.remove(order)
 
         Project.order_log.append(Order(datetime.now(), self.project, str(ticker), str(self.project.status), test_order))
         self.project.test_account.sell_order(test_order)

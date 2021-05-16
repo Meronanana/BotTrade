@@ -74,6 +74,11 @@
      <string>Testing</string>
     </property>
    </item>
+   <item>
+    <property name="text">
+     <string>Radar Only</string>
+    </property>
+   </item>
   </widget>
   <widget class="QPushButton" name="apply_pushButton">
    <property name="geometry">

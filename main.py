@@ -449,6 +449,9 @@ class MainWindow(QMainWindow, main_ui):
             elif t == 'Testing':
                 self.status_label.setText('T')
                 self.project.project_testing()
+            elif t == 'Radar Only':
+                self.status_label.setText('A')
+                self.project.project_radar_only()
             elif t == 'Off':
                 self.status_label.setText('-')
                 self.project.project_off()

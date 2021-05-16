@@ -54,4 +54,4 @@ class TestAccount:
         except:
             difference_rate = 0.00
 
-        return (int(total_balance), int(total_bought), int(total_evaluate), int(difference), round(difference_rate, 2))
+        return [int(total_balance), int(total_bought), int(total_evaluate), int(difference), round(difference_rate, 2)]

@@ -111,6 +111,8 @@ class Project:
     def project_radar_only(self):
         if self.status != 'Radar Only':
             self.status = 'Radar Only'
+            self.buy_thread.terminate()
+            self.sell_thread.terminate()
             self.radar.radar_on()
 
             print(self.status)

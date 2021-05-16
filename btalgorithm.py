@@ -16,8 +16,7 @@ class Algorithm:
     def __init__(self):
         # 알고리즘 리스트 초기화
         if not Algorithm.activated:
-            Algorithm.algs = []
-            Algorithm.algs.extend([BreakVolatilityAlg, LowValueAlg, StopLossAlg, TestChimpanzeeAlg])
+            Algorithm.algs = [BreakVolatilityAlg, LowValueAlg, StopLossAlg, ValuefeForRadar, TestChimpanzeeAlg]
             Algorithm.activated = True
 
         self.datatype = 'day'
@@ -28,6 +27,32 @@ class Algorithm:
 
     def sell_algorithm(self, data, order, status):
         return False
+
+    # 가장 최근 상승구간을 반환 (약 5% 이상 상승 시)
+    @staticmethod
+    def find_rising_section(data: DataFrame):
+        volatility = []
+        length = len(data['open'])
+        for i in range(length):
+            # 시작가 대비 상승폭
+            volatility.append((data['close'][i] - data['open'][i]) / data['open'][i] * 100)
+
+        volatility.reverse()
+        rising = 0
+        start_index = None
+        for i in range(length):
+            if volatility[i] > 0:
+                if start_index is not None:
+                    start_index = i
+                rising += volatility[i]
+            else:
+                start_index = None
+                rising = 0
+
+            if rising > 5:
+                return range(-(i + 1), -(start_index + 1))
+
+        return None
 
     # 각자 다른 시간 포맷을 datetime형으로 반환
     @staticmethod
@@ -106,38 +131,32 @@ class BreakVolatilityAlg(Algorithm):
             return False
 
 
-# 두 번째 알고리즘! / 임시 폐지
-class CatchRapidStarAlg(Algorithm):
-    title = '급등주 포착으로 빠르고 강력한 단타매매'
-    description = '변동성 돌파 전략 사용, 1분봉*5개 기준 전 기간 (최고-최저)*2 만큼 오르면 매수'
+# 레이더 활용 눌림목 매매
+class ValuefeForRadar(Algorithm):
+    title = '레이더 활용 눌림목 매매'
+    description = '최근 증가구간을 파악 후 주가가 횡보 하락하면 매수'
 
     def __init__(self):
         super().__init__()
         self.datatype = "minute1"
 
-    # 변동성 돌파 전략, k = 2, 최근 5분간 변동성 추적
+    # 최근 증가구간을 파악 후 주가가 횡보 하락하면 매수
     def buy_algorithm(self, data):
-        df = data
-
-        df_highs = list(df['high'])
-        df_lows = list(df['low'])
-        high = df_highs[-6]
-        low = df_lows[-6]
-        for i in range(-5, -1):
-            if high < df_highs[i]:
-                high = df_highs[i]
-            if low > df_lows[i]:
-                low = df_lows[i]
-
-        bf5_var = high - low
-
-        # 변동성이 전봉종가의 1% 미만이면 건드리지 않음.
-        if bf5_var < data.iloc[-2]['close'] * 0.01:
+        rising_section = self.find_rising_section(data)
+        if rising_section is None:
             return False
 
-        target = df.iloc[-1]['open'] + bf5_var * 2
+        df = data
+        df_open = df['open']
+        df_close = df['close']
 
-        if df.iloc[-1]['close'] >= target:
+        high_point = df['close'][rising_section[-1]]
+        volatility = 0
+        for i in range(rising_section[-1]+1, 0):
+            volatility += (df_close[i] - df_open[i]) / high_point * 100
+
+        # 도합 1% 이상 하락하면 매수
+        if volatility < -1:
             return True
         else:
             return False

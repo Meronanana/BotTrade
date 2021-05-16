@@ -56,7 +56,7 @@ class RadarComponent(QThread):
         super().__init__()
         # 컴포넌트 리스트 초기화
         if not RadarComponent.activated:
-            RadarComponent.comps = {'FindRapidStarComp': FindRapidStarComp}
+            RadarComponent.comps = {'Default': RadarComponent, 'FindRapidStarComp': FindRapidStarComp}
             RadarComponent.activated = True
 
         self.tickers = RadarComponent.krw_tickers if tickers is None else tickers
@@ -121,7 +121,7 @@ class FindRapidStarComp(RadarComponent):
     def __init__(self):
         super().__init__()
 
-    # 최근 20분간 2% 이상 상승한 분봉이 있다면 True
+    # 최근 20분간 2% 이상 상승한 1분봉이 있다면 True
     def is_remarkable(self, ticker):
         try:
             data = pu.get_ohlcv(ticker=ticker, interval="minute1", count=20)

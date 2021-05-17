@@ -29,6 +29,7 @@ class Radar:
 
             result = list(set(result).intersection(comp.tickers))
 
+        print(result)
         return result
 
     def radar_on(self):

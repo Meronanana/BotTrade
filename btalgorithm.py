@@ -49,7 +49,7 @@ class Algorithm:
                 start_index = None
                 rising = 0
 
-            if rising > 5:
+            if rising > 5 and start_index is not None:
                 return range(-(i + 1), -(start_index + 1))
 
         return None
@@ -161,8 +161,8 @@ class ValuefeForRadar(Algorithm):
         else:
             return False
 
+    # 주가가 변동없이 계속 횡보하거나 단기 상승 시 매도
     def sell_algorithm(self, data, order, status):
-        # 거래량이 이전보다 적으면 매도
         buy_order_time: datetime
 
         if status == 'Release':
@@ -172,12 +172,23 @@ class ValuefeForRadar(Algorithm):
         elif status == 'Testing':
             buy_order_time = order['created_at']
 
-        if (datetime.now() - buy_order_time + timedelta(seconds=1)).seconds > 120:
-            vol = list(data['volume'])
-            if vol[-2] < vol[-3]:
+        # +3% 이익 실현
+        earning = float(order['avg_buy_price']) * 1.03
+
+        if earning < float(data.iloc[-1]['close']):
+            return True
+        else:
+            return False
+
+        how_time_hold = (datetime.now() - buy_order_time + timedelta(seconds=1)).seconds
+        if how_time_hold < 120:
+            avg = order['avg_buy_price']
+            if avg * 0.99 < data['close'][-1] < avg * 1.01:
                 return True
             else:
                 return False
+        elif how_time_hold > 120:
+            return True
         else:
             return False
 

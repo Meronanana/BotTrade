@@ -233,7 +233,7 @@ class AddProject(QDialog):
 
     def __init__(self, parent):
         super(AddProject, self).__init__(parent)
-        ui = 'add_algorithms_in_project.ui'
+        ui = 'add_project_in_main.ui'
         uic.loadUi(ui, self)
         self.algorithm_comboBox.addItems(MainWindow.algs.keys())
         self.radar_comboBox.addItems(MainWindow.rds.keys())

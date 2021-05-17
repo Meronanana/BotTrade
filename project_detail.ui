@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>703</width>
+    <width>681</width>
     <height>411</height>
    </rect>
   </property>
@@ -24,7 +24,7 @@
     <rect>
      <x>60</x>
      <y>20</y>
-     <width>211</width>
+     <width>151</width>
      <height>21</height>
     </rect>
    </property>
@@ -50,7 +50,7 @@
     <rect>
      <x>10</x>
      <y>50</y>
-     <width>281</width>
+     <width>201</width>
      <height>16</height>
     </rect>
    </property>
@@ -76,7 +76,7 @@
     <rect>
      <x>20</x>
      <y>100</y>
-     <width>661</width>
+     <width>641</width>
      <height>291</height>
     </rect>
    </property>
@@ -114,7 +114,7 @@
   <widget class="QLabel" name="label_3">
    <property name="geometry">
     <rect>
-     <x>320</x>
+     <x>230</x>
      <y>10</y>
      <width>71</width>
      <height>16</height>
@@ -127,7 +127,7 @@
   <widget class="QLabel" name="label_4">
    <property name="geometry">
     <rect>
-     <x>320</x>
+     <x>230</x>
      <y>40</y>
      <width>71</width>
      <height>16</height>
@@ -140,7 +140,7 @@
   <widget class="QLabel" name="label_5">
    <property name="geometry">
     <rect>
-     <x>320</x>
+     <x>230</x>
      <y>70</y>
      <width>71</width>
      <height>16</height>
@@ -153,7 +153,7 @@
   <widget class="QLabel" name="label_6">
    <property name="geometry">
     <rect>
-     <x>500</x>
+     <x>410</x>
      <y>40</y>
      <width>71</width>
      <height>16</height>
@@ -166,7 +166,7 @@
   <widget class="QLabel" name="label_7">
    <property name="geometry">
     <rect>
-     <x>490</x>
+     <x>400</x>
      <y>70</y>
      <width>81</width>
      <height>16</height>
@@ -179,7 +179,7 @@
   <widget class="QLineEdit" name="total_balance_lineEdit">
    <property name="geometry">
     <rect>
-     <x>390</x>
+     <x>300</x>
      <y>10</y>
      <width>81</width>
      <height>20</height>
@@ -195,7 +195,7 @@
   <widget class="QLineEdit" name="total_bought_lineEdit">
    <property name="geometry">
     <rect>
-     <x>390</x>
+     <x>300</x>
      <y>40</y>
      <width>81</width>
      <height>20</height>
@@ -211,7 +211,7 @@
   <widget class="QLineEdit" name="total_evaluate_lineEdit">
    <property name="geometry">
     <rect>
-     <x>390</x>
+     <x>300</x>
      <y>70</y>
      <width>81</width>
      <height>20</height>
@@ -227,7 +227,7 @@
   <widget class="QLineEdit" name="diff_lineEdit">
    <property name="geometry">
     <rect>
-     <x>570</x>
+     <x>480</x>
      <y>40</y>
      <width>81</width>
      <height>20</height>
@@ -243,7 +243,7 @@
   <widget class="QLineEdit" name="diff_rate_lineEdit">
    <property name="geometry">
     <rect>
-     <x>570</x>
+     <x>480</x>
      <y>70</y>
      <width>81</width>
      <height>20</height>
@@ -259,7 +259,7 @@
   <widget class="QPushButton" name="reset_pushButton">
    <property name="geometry">
     <rect>
-     <x>570</x>
+     <x>480</x>
      <y>10</y>
      <width>81</width>
      <height>23</height>
@@ -267,6 +267,19 @@
    </property>
    <property name="text">
     <string>새로고침</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="detail_pushButton">
+   <property name="geometry">
+    <rect>
+     <x>570</x>
+     <y>10</y>
+     <width>91</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>세부 정보 설정</string>
    </property>
   </widget>
  </widget>

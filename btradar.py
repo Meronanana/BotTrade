@@ -123,9 +123,9 @@ class FindRapidStarComp(RadarComponent):
 
     # 최근 20분간 2% 이상 상승한 1분봉이 있다면 True
     def is_remarkable(self, ticker):
-        try:
-            data = pu.get_ohlcv(ticker=ticker, interval="minute1", count=20)
-        except Exception:
+
+        data = pu.get_ohlcv(ticker=ticker, interval="minute1", count=20)
+        if data is None:
             return False
 
         for date, ohclv in data.iterrows():

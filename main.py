@@ -196,41 +196,6 @@ class AddProject(QDialog):
             self.radar_title_label.setText(self.radar.title)
             print(radar.title)
 
-    class SetProjectDetail(QDialog):
-        def __init__(self, parent, detail: tuple):
-            super(AddProject.SetProjectDetail, self).__init__(parent)
-            ui = 'set_project_detail.ui'
-            uic.loadUi(ui, self)
-
-            self.title = detail[0]
-            self.description = detail[1]
-            self.divide_for = detail[2]
-
-            self.initialize_detail()
-
-            self.accept_pushButton.clicked.connect(self.accept)
-            self.reject_pushButton.clicked.connect(self.reject)
-
-            self.show()
-
-        def initialize_detail(self):
-            self.title_lineEdit.setText(self.title)
-            self.description_lineEdit.setText(self.description)
-            self.divide_for_spinBox.setValue(int(self.divide_for))
-
-        @pyqtSlot()
-        def accept(self):
-            self.accepted = True
-            self.title = str(self.title_lineEdit.text())
-            self.description = str(self.description_lineEdit.text())
-            self.divide_for = int(self.divide_for_spinBox.value())
-            super(AddProject.SetProjectDetail, self).accept()
-
-        @pyqtSlot()
-        def reject(self):
-            self.accepted = False
-            super(AddProject.SetProjectDetail, self).reject()
-
     def __init__(self, parent):
         super(AddProject, self).__init__(parent)
         ui = 'add_project_in_main.ui'
@@ -255,7 +220,7 @@ class AddProject(QDialog):
 
     @pyqtSlot()
     def set_detail(self):
-        window = AddProject.SetProjectDetail(self, (self.title, self.description, self.divide_for))
+        window = SetProjectDetail(self, (self.title, self.description, self.divide_for))
         window.exec_()
         if window.accepted:
             self.title = str(window.title)
@@ -332,6 +297,7 @@ class ProjectDetail(QDialog):
         self.initialize_balance()
 
         self.reset_pushButton.clicked.connect(self.initialize_balance)
+        self.detail_pushButton.clicked.connect(self.set_detail)
 
         self.show()
 
@@ -366,6 +332,53 @@ class ProjectDetail(QDialog):
             for j, d2 in enumerate(d):
                 item = QTableWidgetItem(d2)
                 self.balance_tableWidget.setItem(i, j, item)
+
+    @pyqtSlot()
+    def set_detail(self):
+        window = SetProjectDetail(self, (self.project.title, 'No description', self.project.divide_for))
+        window.exec_()
+        if window.accepted:
+            self.project.title = str(window.title)
+            # str(window.description)
+            self.project.divide_for = int(window.divide_for)
+
+            self.title_lineEdit.setText(self.project.title)
+
+
+class SetProjectDetail(QDialog):
+    def __init__(self, parent, detail: tuple):
+        super().__init__(parent)
+        ui = 'set_project_detail.ui'
+        uic.loadUi(ui, self)
+
+        self.title = detail[0]
+        self.description = detail[1]
+        self.divide_for = detail[2]
+
+        self.initialize_detail()
+
+        self.accept_pushButton.clicked.connect(self.accept)
+        self.reject_pushButton.clicked.connect(self.reject)
+
+        self.show()
+
+    def initialize_detail(self):
+        self.title_lineEdit.setText(self.title)
+        self.description_lineEdit.setText(self.description)
+        self.divide_for_spinBox.setValue(int(self.divide_for))
+
+    @pyqtSlot()
+    def accept(self):
+        self.accepted = True
+        self.title = str(self.title_lineEdit.text())
+        self.description = str(self.description_lineEdit.text())
+        self.divide_for = int(self.divide_for_spinBox.value())
+        super().accept()
+
+    @pyqtSlot()
+    def reject(self):
+        self.accepted = False
+        super().reject()
 
 
 class MainWindow(QMainWindow, main_ui):

@@ -146,10 +146,8 @@ class BuyThread(QThread):
 
                 signal = True   # 모두 통과해야 매수
                 for al in self.project.algorithms:
-                    try:
-                        data = pu.get_ohlcv(ticker=ticker, interval=al.datatype, count=30)  # data의 규격은 일단 ohclv로 함, 30개만 가져옴.
-                    except:
-                        print("요청 초과!")
+                    data = pu.get_ohlcv(ticker=ticker, interval="minute1", count=20)
+                    if data is None:
                         signal = False
                         break
 
@@ -183,7 +181,7 @@ class BuyThread(QThread):
         # 최대 주문 가능 금액, 업비트 일반 주문 수수료 0.05%
         try:
             order_balance = self.project.test_account.balance / (self.project.divide_for - len(self.project.test_account.wallet)) / 1.0005
-        except:
+        except ZeroDivisionError:
             order_balance = 0
 
         if order_balance < 5000:
@@ -231,10 +229,8 @@ class SellThread(QThread):
                 data: tuple
                 signal = False  # 하나라도 통과하면 매도
                 for al in self.project.algorithms:
-                    try:
-                        data = pu.get_ohlcv(ticker=ticker, interval=al.datatype, count=30)  # data의 규격은 일단 ohclv로 함, 30개만 가져옴.
-                    except Exception:
-                        print("요청 초과!")
+                    data = pu.get_ohlcv(ticker=ticker, interval="minute1", count=20)
+                    if data is None:
                         signal = False
                         break
 

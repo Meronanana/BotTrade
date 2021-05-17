@@ -181,7 +181,7 @@ class ValuefeForRadar(Algorithm):
             return False
 
         how_time_hold = (datetime.now() - buy_order_time + timedelta(seconds=1)).seconds
-        if how_time_hold < 120:
+        if 20 < how_time_hold < 120:
             avg = order['avg_buy_price']
             if avg * 0.99 < data['close'][-1] < avg * 1.01:
                 return True
